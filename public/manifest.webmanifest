@@ -1,0 +1,19 @@
+{
+  "name": "BlueKit — Blue Team Workbench",
+  "short_name": "BlueKit",
+  "description": "Browser-native blue team and security-analysis workbench. Local-first, no backend.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B0F14",
+  "theme_color": "#0B0F14",
+  "categories": ["security", "developer", "utilities"],
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
