@@ -2,7 +2,7 @@
 
 BlueKit bundles and/or depends on the following third-party software. Each retains its own licence. This file is informational; the authoritative licence text ships with each package.
 
-_Last updated: 2026-11-20_
+_Last updated: 2026-11-23_
 
 ## Runtime dependencies
 
@@ -12,6 +12,9 @@ _Last updated: 2026-11-20_
 | [lucide-svelte](https://lucide.dev/) | 1.0.1 | ISC | Icons |
 | [@fontsource-variable/inter](https://fontsource.org/fonts/inter) | 5.3.0 | OFL-1.1 | Self-hosted UI font |
 | [@fontsource-variable/jetbrains-mono](https://fontsource.org/fonts/jetbrains-mono) | 5.3.0 | OFL-1.1 | Self-hosted mono font |
+| [yaml](https://eemeli.org/yaml/) | 2.9.1 | ISC | YAML parsing for validation and formatting |
+| [ajv](https://ajv.js.org/) | 8.20.0 | MIT | JSON Schema validation for Sigma rules |
+| [ajv-formats](https://github.com/ajv-validator/ajv-formats) | 3.0.1 | MIT | UUID and other format checks for Ajv |
 
 Lucide includes icons derived from the Feather project under the MIT licence. Inter and JetBrains Mono are licensed under the SIL Open Font License 1.1; the font files are bundled as WOFF2 subsets and are not sold separately.
 
@@ -35,14 +38,12 @@ These were used to gather Phase 0 evidence. They are **not** current dependencie
 | Package | Version evaluated | Licence | Intended use |
 |---|---|---|---|
 | [@virustotal/yara-x](https://github.com/VirusTotal/yara-x) | 1.23.0 | BSD-3-Clause | YARA rule compilation and scanning (Phase 4) |
-| [ajv](https://ajv.js.org/) | 8.x | MIT | Sigma JSON Schema validation (Phase 4) |
-| [yaml](https://eemeli.org/yaml/) | 2.x | ISC | Sigma YAML parsing (Phase 4) |
 
 ## Data and specifications
 
 | Item | Licence / terms | Use |
 |---|---|---|
-| [SigmaHQ Sigma specification](https://github.com/SigmaHQ/sigma-specification) | Spec repository terms; schema to be vendored with attribution | Sigma rule schema (Phase 4) |
+| [SigmaHQ Sigma specification](https://github.com/SigmaHQ/sigma-specification) | Public domain (specification content) | `json-schema/sigma-detection-rule-schema.json`, commit `ba9251a`, retrieved 2026-11-21, SHA-256 `eb95ddb1…2d95` |
 | [MITRE ATT&CK](https://attack.mitre.org/) | MITRE terms; attribution required | Future dataset pack (Phase 8) |
 | [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | U.S. Government work; check terms | Future dataset pack (Phase 8) |
 

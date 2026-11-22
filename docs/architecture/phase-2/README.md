@@ -23,7 +23,7 @@ Phase 2 turns the foundation into daily-use tools. The initial utility set is co
 | Regex Tester & Extractor | worker | text | JSON report | ReDoS guard + worker termination on timeout |
 | Strings Extractor | worker | file | text | ASCII + UTF-16LE, both byte alignments, bounded |
 | Entropy Calculator | worker | file | JSON report | Whole file + 1 KiB chunks |
-| YAML Validator & Formatter | worker | text | JSON report | Pinned `yaml@2.8.1`; duplicate keys rejected |
+| YAML Validator & Formatter | worker | text | JSON report | Pinned `yaml@2.9.1`; duplicate keys rejected |
 | XML Formatter & Checker | main | text | JSON report | Scanner, not a DOM parser; entities never resolved |
 | Unicode Inspector | main | text | JSON report | Code points, UTF-8/UTF-16 bytes, normalization, hidden characters, small confusable map |
 | XOR | main | text | text | Repeating-key; symmetric, so decode uses the same tool |
@@ -120,10 +120,14 @@ slow, and the worker timeout is the real backstop.
 
 ### YAML
 
-The tool pins `yaml@2.8.1`, parses with the core schema, `strict: true`, and
+The tool pins `yaml@2.9.1`, parses with the core schema, `strict: true`, and
 `uniqueKeys: true`, and reports line/column positions from the library's pretty
 errors. Formatting normalises through `toJS()` → `stringify()`, so anchors and
 aliases are resolved in the output.
+
+The pin moved from 2.8.1 to 2.9.1 for the upstream fix to a stack-overflow
+advisory on deeply nested collections. The YAML tool remains worker-bounded, and
+Rule Studio adds its own depth, alias, and input caps for untrusted rules.
 
 ### XML
 
