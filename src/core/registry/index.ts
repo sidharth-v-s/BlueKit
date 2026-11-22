@@ -22,6 +22,7 @@ import { urlTool } from '@/tools/encoding/url';
 import { xmlTool } from '@/tools/encoding/xml';
 import { xorTool } from '@/tools/encoding/xor';
 import { yamlTool } from '@/tools/encoding/yaml';
+import { sigmaValidatorTool } from '@/tools/detection/sigma-validator';
 import { emlInspectorTool } from '@/tools/email/eml-inspector';
 import { attachmentExtractorTool } from '@/tools/email/attachment-extractor';
 import { authResultsTool } from '@/tools/email/auth-results';
@@ -66,6 +67,7 @@ export const IMPLEMENTED_TOOLS: readonly BlueKitTool[] = [
   xmlTool,
   xorTool,
   yamlTool,
+  sigmaValidatorTool,
   emlInspectorTool,
   attachmentExtractorTool,
   authResultsTool,

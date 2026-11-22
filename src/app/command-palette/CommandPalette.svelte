@@ -6,6 +6,7 @@
   import MailSearch from 'lucide-svelte/icons/mail-search';
   import Search from 'lucide-svelte/icons/search';
   import Settings from 'lucide-svelte/icons/settings';
+  import ShieldCheck from 'lucide-svelte/icons/shield-check';
   import Activity from 'lucide-svelte/icons/activity';
   import Upload from 'lucide-svelte/icons/upload';
   import Command from 'lucide-svelte/icons/command';
@@ -64,6 +65,14 @@
       keywords: 'ioc indicator extract normalize defang bulk dedupe',
       icon: Crosshair,
       run: () => router.navigate('/ioc'),
+    },
+    {
+      id: 'rules',
+      label: 'Open Rule Studio',
+      hint: 'Sigma validation',
+      keywords: 'rules sigma yaml detection validate author',
+      icon: ShieldCheck,
+      run: () => router.navigate('/rules'),
     },
     {
       id: 'tools',

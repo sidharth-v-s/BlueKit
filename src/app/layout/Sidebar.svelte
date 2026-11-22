@@ -105,7 +105,7 @@
         >
           <span class="nav-icon"><Icon size={15} strokeWidth={1.8} aria-hidden="true" /></span>
           {#if !collapsed}<span class="nav-label">{item.label}</span>{/if}
-          {#if !collapsed && (item.id === 'recipes' || item.id === 'investigations' || item.id === 'rules')}
+          {#if !collapsed && (item.id === 'recipes' || item.id === 'investigations')}
             <span class="soon">soon</span>
           {/if}
         </button>

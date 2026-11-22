@@ -59,6 +59,17 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
     assetsInlineLimit: 4096,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Keep the tiny Sigma metadata module out of the lazy validator chunk.
+          // Without this, Rollup groups it with yaml and the vendored schema, and
+          // the initial modulepreload pulls the whole validator into startup.
+          if (id.endsWith('/src/core/rules/sigma-meta.ts')) return 'sigma-meta';
+          return undefined;
+        },
+      },
+    },
   },
 
   worker: {

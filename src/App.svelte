@@ -15,6 +15,7 @@
   import MailSleuthView from '@/views/MailSleuthView.svelte';
   import OverviewView from '@/views/OverviewView.svelte';
   import PlannedView from '@/views/PlannedView.svelte';
+  import RuleStudioView from '@/views/RuleStudioView.svelte';
   import SettingsView from '@/views/SettingsView.svelte';
   import ToolView from '@/views/ToolView.svelte';
   import ToolsView from '@/views/ToolsView.svelte';
@@ -125,7 +126,7 @@
         {:else if router.route.name === 'investigations'}
           <PlannedView kind="investigations" />
         {:else if router.route.name === 'rules'}
-          <PlannedView kind="rules" />
+          <RuleStudioView />
         {:else if router.route.name === 'reference'}
           <PlannedView kind="reference" />
         {:else}
