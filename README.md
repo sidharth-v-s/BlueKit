@@ -12,7 +12,7 @@ BlueKit is built for analysts who need a quick, honest answer without uploading 
 
 **Phase 3 delivers MailSleuth and the IOC workspace.** MailSleuth parses RFC 822/MIME messages, compares header identities, reads relay authentication claims, extracts and defangs URLs, and hashes attachments locally. Its route is `#/mailsleuth`; every email tool runs in a worker with no network access. The IOC workspace at `#/ioc` extracts indicators from text or normalizes a one-per-line list, with type filters, value search, and explicit defanged/refanged copy actions.
 
-**Phase 4 begins with Sigma validation.** Rule Studio at `#/rules` validates YAML syntax and the vendored official Sigma detection-rule schema, keeping the two failure layers separate. The schema and Ajv validator are lazy-loaded, and unsupported evaluation constructs are reported as warnings rather than passes. Rule execution, sample-event testing, the persistent rule library, and YARA Studio remain planned; validation is not detection testing.
+**Phase 4 begins with Sigma validation and local subset testing.** Rule Studio at `#/rules` validates YAML syntax and the vendored official Sigma detection-rule schema, keeping the two failure layers separate. It also runs a documented local test subset against pasted sample events. The schema, Ajv validator, and evaluator are lazy-loaded, and unsupported constructs fail visibly instead of passing silently. The persistent rule library and YARA Studio remain planned; local test results are authoring feedback, not detection verification.
 
 Shipped tools:
 
@@ -47,7 +47,7 @@ Shipped tools:
 | Authentication Results | available | SPF/DKIM/DMARC/ARC relay claims with attribution and caveats |
 | Email URL Extractor | available | Text and HTML URLs; original, normalised, defanged; never fetched |
 | Attachment Extractor | available | SHA-1/SHA-256, magic bytes, risk flags, explicit download |
-| Sigma Rule Validator | available | YAML + vendored official Sigma schema; separate diagnostics; lazy-loaded |
+| Sigma Rule Validator | available | YAML + vendored official Sigma schema; separate diagnostics; lazy-loaded. Rule Studio adds local subset testing |
 | EVTX Header Probe | prototype | Container/file headers only; no BinXML record decoding |
 
 Everything else in the catalog is explicitly `planned` and cannot be executed.

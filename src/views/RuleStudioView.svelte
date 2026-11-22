@@ -12,6 +12,7 @@
   import { ui } from '@/app/ui.svelte';
   import { SIGMA_MAX_INPUT_BYTES, SIGMA_SCHEMA_SOURCE } from '@/core/rules/sigma-meta';
   import type { SigmaIssue, SigmaRuleSummary, SigmaValidationReport } from '@/core/rules/sigma';
+  import type { SigmaTestResult } from '@/core/rules/sigma-evaluator';
 
   const EXAMPLE_RULE = `title: Suspicious PowerShell Encoded Command
 id: 3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
@@ -41,16 +42,45 @@ tags:
   - attack.t1059.001
 `;
 
+  const EXAMPLE_EVENTS = `[
+  {
+    "EventID": 1,
+    "Image": "C:\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1.0\\\\powershell.exe",
+    "CommandLine": "powershell.exe -NoProfile -enc SQBFAFgA",
+    "ParentImage": "C:\\\\Windows\\\\explorer.exe"
+  },
+  {
+    "EventID": 1,
+    "Image": "C:\\\\Windows\\\\System32\\\\notepad.exe",
+    "CommandLine": "notepad.exe C:\\\\notes.txt",
+    "ParentImage": "C:\\\\Windows\\\\explorer.exe"
+  }
+]`;
+
   let rule = $state(EXAMPLE_RULE);
   let report = $state<SigmaValidationReport | null>(null);
   let error = $state<string | null>(null);
   let validating = $state(false);
   let fileInput: HTMLInputElement | null = $state(null);
 
+  let eventsText = $state('');
+  let testResult = $state<SigmaTestResult | null>(null);
+  let testError = $state<string | null>(null);
+  let testing = $state(false);
+
   const byteLength = $derived(new TextEncoder().encode(rule).byteLength);
   const overLimit = $derived(byteLength > SIGMA_MAX_INPUT_BYTES);
+  const eventBytes = $derived(new TextEncoder().encode(eventsText).byteLength);
   const status = $derived(report === null ? 'idle' : report.valid ? 'valid' : 'invalid');
   const summary = $derived(report?.summary ?? null);
+
+  $effect(() => {
+    // A result belongs to the exact rule and event text that produced it.
+    void rule;
+    void eventsText;
+    testResult = null;
+    testError = null;
+  });
 
   function handleKeydown(event: KeyboardEvent): void {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -74,10 +104,12 @@ tags:
     }
 
     validating = true;
+    const snapshot = rule;
     try {
       // Ajv, ajv-formats, and the vendored schema stay out of the initial bundle.
       const { validateSigmaRule } = await import('@/core/rules/sigma');
-      report = validateSigmaRule(rule);
+      const next = validateSigmaRule(snapshot);
+      if (rule === snapshot) report = next;
     } catch (caught) {
       report = null;
       error = caught instanceof Error ? caught.message : String(caught);
@@ -110,6 +142,42 @@ tags:
     rule = await file.text();
     report = null;
     error = null;
+  }
+
+  function loadExampleEvents(): void {
+    eventsText = EXAMPLE_EVENTS;
+  }
+
+  function handleEventsKeydown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      event.preventDefault();
+      void runLocalTest();
+    }
+  }
+
+  async function runLocalTest(): Promise<void> {
+    if (testing) return;
+    testError = null;
+    if (eventsText.trim().length === 0) {
+      testResult = null;
+      testError = 'Paste one JSON event or an array of events first.';
+      return;
+    }
+
+    testing = true;
+    const ruleSnapshot = rule;
+    const eventsSnapshot = eventsText;
+    try {
+      // The subset evaluator is loaded on demand, alongside the yaml parser.
+      const { runSigmaLocalTest } = await import('@/core/rules/sigma-evaluator');
+      const next = runSigmaLocalTest(ruleSnapshot, eventsSnapshot);
+      if (rule === ruleSnapshot && eventsText === eventsSnapshot) testResult = next;
+    } catch (caught) {
+      testResult = null;
+      testError = caught instanceof Error ? caught.message : String(caught);
+    } finally {
+      testing = false;
+    }
   }
 
   function logsourceText(logsource: NonNullable<SigmaRuleSummary['logsource']>): string {
@@ -322,6 +390,134 @@ tags:
     </section>
   </div>
 
+  <section class="panel test-panel">
+    <div class="panel-head">
+      <span class="panel-title">Local test · documented subset</span>
+      <div class="head-actions">
+        <button type="button" class="btn btn-ghost btn-sm" onclick={loadExampleEvents}>
+          <FileText size={12} strokeWidth={1.9} aria-hidden="true" /> Example events
+        </button>
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm"
+          onclick={() => (eventsText = '')}
+          disabled={eventsText.length === 0}
+        >
+          <Eraser size={12} strokeWidth={1.9} aria-hidden="true" /> Clear
+        </button>
+      </div>
+    </div>
+
+    <div class="test-body">
+      <div class="test-input">
+        <p class="mode-note">
+          Paste one JSON event or an array. Up to 500 events and 2 MiB. `logsource` is metadata only:
+          events are not routed, enriched, or replayed.
+        </p>
+        <textarea
+          class="textarea mono events-textarea"
+          bind:value={eventsText}
+          onkeydown={handleEventsKeydown}
+          spellcheck="false"
+          aria-label="JSON sample events"
+          placeholder={'[\n  { "EventID": 1, "Image": "C:\\\\Windows\\\\powershell.exe", "CommandLine": "powershell.exe -enc SQBFAFgA" }\n]'}
+        ></textarea>
+        <div class="input-actions">
+          <button type="button" class="btn btn-primary" onclick={() => void runLocalTest()} disabled={testing}>
+            {#if testing}
+              <LoaderCircle size={14} strokeWidth={2} class="spin" aria-hidden="true" />
+              Running…
+            {:else}
+              <Play size={14} strokeWidth={1.9} aria-hidden="true" />
+              Run local test
+            {/if}
+          </button>
+          <span class="kbd-hint faint">Ctrl Enter to run</span>
+          <span class="size-hint mono">{eventBytes.toLocaleString()} B / 2 MiB</span>
+        </div>
+        {#if testError}
+          <div class="inline-error">{testError}</div>
+        {/if}
+      </div>
+
+      <div class="test-output">
+        {#if testResult === null}
+          <div class="empty compact">
+            <Play size={19} strokeWidth={1.4} aria-hidden="true" />
+            <span>No local test yet.</span>
+            <span class="faint">Results are authoring feedback, not detection verification.</span>
+          </div>
+        {:else if !testResult.ok}
+          <div class="verdict invalid">
+            <CircleAlert size={15} strokeWidth={1.9} aria-hidden="true" />
+            <div>
+              <strong>The local test could not run.</strong>
+              <p>{testResult.error}</p>
+            </div>
+          </div>
+          {#if testResult.unsupported.length > 0}
+            <div class="unsupported-list">
+              {#each testResult.unsupported as item, index (item.feature + item.location + index)}
+                <div class="unsupported">
+                  <span class="feature mono">{item.feature}</span>
+                  <span class="issue-message">{item.message}</span>
+                  <span class="issue-path mono">{item.location}</span>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        {:else}
+          <div class="summary-grid test-summary">
+            <div class="summary-item">
+              <span class="summary-value mono">{testResult.matchedCount} / {testResult.eventCount}</span>
+              <span class="summary-label">Matched events</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-value mono">{testResult.selections.length}</span>
+              <span class="summary-label">Selections</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-value mono">{testResult.evaluator}</span>
+              <span class="summary-label">Evaluator</span>
+            </div>
+          </div>
+
+          <div class="test-condition mono" title="Detection condition used for this run">
+            {testResult.condition}
+          </div>
+
+          <div class="event-list">
+            <div class="event-row event-head">
+              <span>Event</span>
+              <span>Result</span>
+              <span>Matched selections</span>
+            </div>
+            {#each testResult.events as event (event.index)}
+              <div class="event-row" class:matched={event.matched}>
+                <span class="event-index mono">#{event.index + 1}</span>
+                <span class="badge {event.matched ? 'badge-warning' : 'badge-muted'}">
+                  {event.matched ? 'match' : 'no match'}
+                </span>
+                <span class="event-selections mono" title={JSON.stringify(event.selectionResults)}>
+                  {event.matchedSelections.length > 0 ? event.matchedSelections.join(', ') : '—'}
+                </span>
+              </div>
+            {/each}
+          </div>
+
+          <div class="warnings">
+            {#each testResult.warnings as warning}
+              <div class="warning">
+                <TriangleAlert size={13} strokeWidth={1.9} aria-hidden="true" />
+                <span>{warning}</span>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    </div>
+  </section>
+
   <section class="panel notes-panel">
     <div class="panel-head">
       <span class="panel-title">
@@ -348,8 +544,8 @@ tags:
         <ShieldCheck size={14} strokeWidth={1.9} aria-hidden="true" />
         <p>
           <strong>Offline and pinned.</strong> The schema is vendored from SigmaHQ and checksummed in
-          {SIGMA_SCHEMA_SOURCE.path}; Ajv loads only when validation first runs. Local event testing and a
-          persistent rule library remain planned.
+          {SIGMA_SCHEMA_SOURCE.path}; Ajv loads only when validation first runs. Local testing evaluates
+          the documented subset on your sample events. A persistent rule library remains planned.
         </p>
       </div>
     </div>
@@ -675,6 +871,129 @@ tags:
     background: var(--surface-2);
   }
 
+  .test-panel {
+    margin-bottom: 14px;
+  }
+
+  .test-body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 12px;
+    align-items: start;
+    padding: 12px;
+  }
+
+  .test-input,
+  .test-output {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .test-output {
+    min-height: 190px;
+  }
+
+  .mode-note {
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+
+  .events-textarea {
+    min-height: 190px;
+    font-size: 11.5px;
+    line-height: 1.55;
+    resize: vertical;
+  }
+
+  .test-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .test-condition {
+    padding: 6px 8px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: #9ecbff;
+    font-size: 10.5px;
+    overflow-wrap: anywhere;
+  }
+
+  .event-list {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .event-row {
+    display: grid;
+    grid-template-columns: 46px 78px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 11px;
+  }
+
+  .event-row:last-child {
+    border-bottom: 0;
+  }
+
+  .event-row.matched {
+    background: rgba(216, 166, 87, 0.06);
+  }
+
+  .event-head {
+    background: var(--surface-2);
+    color: var(--muted-2);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .event-index {
+    color: var(--muted-2);
+  }
+
+  .event-selections {
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .unsupported-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(224, 108, 108, 0.28);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .unsupported {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 7px 9px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .unsupported:last-child {
+    border-bottom: 0;
+  }
+
+  .feature {
+    color: #f0a3a3;
+    font-size: 10px;
+  }
+
+  .test-output .empty.compact {
+    min-height: 150px;
+    border: 1px dashed var(--border-soft);
+    border-radius: var(--radius);
+  }
+
   .notes {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -716,6 +1035,10 @@ tags:
       grid-template-columns: minmax(0, 1fr);
     }
 
+    .test-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
     .rule-textarea {
       min-height: 320px;
     }
@@ -732,6 +1055,23 @@ tags:
 
     .summary-item:nth-child(-n + 2) {
       border-bottom: 1px solid var(--border-soft);
+    }
+
+    .test-summary {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .test-summary .summary-item {
+      border-right: 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .test-summary .summary-item:last-child {
+      border-bottom: 0;
+    }
+
+    .event-row {
+      grid-template-columns: 38px 70px minmax(0, 1fr);
     }
   }
 </style>
