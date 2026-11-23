@@ -27,7 +27,7 @@ detection works.
 | Schema attribution | Schema title, SHA-256 prefix, and validator versions in the view |
 | Local test | Documented evaluator subset over one event or an array of events |
 | Test results | Per-event match state, matched selections, unsupported-feature failures |
-| Rule library | Local save/update/delete, search, revisions, and load back into the editor |
+| Rule library | Local save/update/delete, search, stored revision snapshots with diffs and restore, and load back into the editor |
 | Import/export | Single YAML rules and versioned `bluekit.rules` bundles with attribution |
 | YARA Studio | See [YARA Studio](yara.md): YARA-X compile validation, local multi-file scan, snippets, progress/cancel, export |
 
@@ -134,9 +134,26 @@ Saving:
 - **Save rule** creates a local record with a local id.
 - **Save changes** updates the loaded record, keeps its id and creation time,
   increments `revision`, and refreshes `updatedAt`.
+- Each save also stores a snapshot in the `ruleRevisions` store. Snapshots are
+  keyed by rule id and revision, capped at 50 per rule, and pruned oldest first.
 - Saving a draft with schema issues is allowed. The record keeps `schemaValid`
   so the library can label it `schema issues` rather than pretending it passed.
-- Deleting is confirmed and removes only the local record.
+- Deleting is confirmed and removes the local record and its snapshots.
+
+Revision history:
+
+- **History** in the library lists stored snapshots newest first, with the
+  revision number, recording time, content size, and title.
+- **Diff** shows a unified line diff from the selected snapshot to the current
+  working content. It is the same line-diff implementation as the Phase 2
+  comparison tool.
+- **Restore** saves the snapshot's content and metadata as a new revision; it
+  does not rewrite or delete existing snapshots. The confirmation states that
+  unsaved editor content is replaced.
+- Snapshots are recorded from this build onward. A record saved before revision
+  history existed has no earlier snapshot and cannot be rolled back to one.
+- Revision snapshots are included in the archive. Archive schema version 2 adds
+  the `ruleRevisions` store; version 1 archives remain readable.
 
 Importing:
 
@@ -164,8 +181,8 @@ note. It is metadata, not a verification or redistribution guarantee.
 
 Known limits:
 
-- Revision history is a counter, not a stored history; diffs between versions
-  are not implemented yet.
+- Revision history stores content snapshots, not a full audit trail of every
+  keystroke. Snapshots exist only for explicit saves made by this build.
 - Collections and favourites are not implemented yet.
 - Imported bundle records are not validated against the schema at import time;
   validation happens when a rule is saved from the editor or checked manually.
@@ -201,8 +218,7 @@ library, collections, revisions, and diffs are not implemented yet.
 
 - It does not replay production telemetry, schedule tests, or route events by
   logsource. Only pasted sample events are evaluated.
-- It does not store Sigma rule version history, diff revisions, or support
-  collections and favourites yet.
+- It does not yet support Sigma collections or favourites.
 - It does not import repository-wide rule packs in one operation or resolve
   Sigma includes.
 - It does not convert rules to backend query languages.
@@ -245,6 +261,15 @@ library, collections, revisions, and diffs are not implemented yet.
 - bundle round-trips with fresh ids and preserved attribution;
 - malformed and over-limit bundle rejection;
 - single-rule attribution headers and safe filenames.
+
+`tests/unit/rule-revisions.test.ts` covers:
+
+- snapshot creation, overwrite, ordering, scoping, and the 50-revision cap;
+- deletion of one rule's snapshots without touching another rule;
+- ignoring malformed or foreign snapshots;
+- restore creating a new working revision with old content and metadata;
+- unified diffs between a snapshot and the current content;
+- no-difference diffs and cross-rule rejection.
 
 `tests/unit/yara.test.ts`, `tests/unit/yara-job.test.ts`, and
 `tests/unit/yara-engine.test.ts` cover the YARA source/file caps, import notes,

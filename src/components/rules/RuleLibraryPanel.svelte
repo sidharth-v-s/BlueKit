@@ -3,6 +3,7 @@
   import Download from 'lucide-svelte/icons/download';
   import FileText from 'lucide-svelte/icons/file-text';
   import HardDrive from 'lucide-svelte/icons/hard-drive';
+  import History from 'lucide-svelte/icons/history';
   import Search from 'lucide-svelte/icons/search';
   import Trash2 from 'lucide-svelte/icons/trash-2';
   import Upload from 'lucide-svelte/icons/upload';
@@ -10,6 +11,7 @@
   import { ui } from '@/app/ui.svelte';
   import { session } from '@/core/app/session.svelte';
   import { downloadText, fileStamp } from '@/core/export-import/download';
+  import { formatBytes } from '@/core/runtime/errors';
   import {
     buildRuleRecord,
     deleteRuleRecord,
@@ -24,6 +26,15 @@
     serializeRulesBundle,
     type RuleRecord,
   } from '@/core/rules/library';
+  import {
+    deleteRuleRevisions,
+    diffRevision,
+    readRuleRevisions,
+    recordRuleRevision,
+    restoreRuleRevision,
+    type RuleRevision,
+    type RuleRevisionDiff,
+  } from '@/core/rules/revisions';
   import { SIGMA_MAX_INPUT_BYTES } from '@/core/rules/sigma-meta';
 
   let {
@@ -48,6 +59,12 @@
   let error = $state<string | null>(null);
   let importInput: HTMLInputElement | null = $state(null);
   let pendingDelete = $state<RuleRecord | null>(null);
+  let historyRecord = $state<RuleRecord | null>(null);
+  let historyRevisions = $state<RuleRevision[]>([]);
+  let historyBusy = $state(false);
+  let historyError = $state<string | null>(null);
+  let historyDiff = $state<RuleRevisionDiff | null>(null);
+  let pendingRestore = $state<RuleRevision | null>(null);
 
   const persistenceEnabled = $derived(session.persistenceEnabled);
 
@@ -115,8 +132,16 @@
         previous,
       });
       await saveRuleRecord(session.adapter, record);
+      // Revision history is a convenience; a snapshot failure must not make a
+      // successful save look like a failed one.
+      try {
+        await recordRuleRevision(session.adapter, record);
+      } catch {
+        ui.toast('The rule was saved, but its revision snapshot could not be stored.', 'warning');
+      }
       await session.refreshStorage();
       await refresh();
+      if (historyRecord?.id === record.id) await openHistory(record);
       onsaved(record);
       ui.toast(
         report.valid
@@ -206,6 +231,11 @@
 
       for (const record of imported) {
         await saveRuleRecord(session.adapter, record);
+        try {
+          await recordRuleRevision(session.adapter, record);
+        } catch {
+          // Import still succeeds; the rule is visible in the library.
+        }
       }
       await session.refreshStorage();
       await refresh();
@@ -226,14 +256,84 @@
     pendingDelete = null;
     if (!record || !session.adapter) return;
     try {
+      await deleteRuleRevisions(session.adapter, record.id);
       await deleteRuleRecord(session.adapter, record.id);
       await session.refreshStorage();
       await refresh();
+      if (historyRecord?.id === record.id) closeHistory();
       ondelete(record.id);
       ui.toast(`Deleted "${record.title ?? 'Untitled rule'}".`, 'info');
     } catch (caught) {
       ui.toast(describeError(caught), 'danger');
     }
+  }
+
+  async function openHistory(record: RuleRecord): Promise<void> {
+    historyRecord = record;
+    historyDiff = null;
+    await loadHistory(record);
+  }
+
+  async function loadHistory(record: RuleRecord | null = historyRecord): Promise<void> {
+    if (!record || !session.adapter) return;
+    historyBusy = true;
+    historyError = null;
+    try {
+      historyRevisions = await readRuleRevisions(session.adapter, record.id);
+    } catch (caught) {
+      historyRevisions = [];
+      historyError = caught instanceof Error ? caught.message : String(caught);
+    } finally {
+      historyBusy = false;
+    }
+  }
+
+  function closeHistory(): void {
+    historyRecord = null;
+    historyRevisions = [];
+    historyDiff = null;
+    historyError = null;
+  }
+
+  function showDiff(revision: RuleRevision): void {
+    if (!historyRecord) return;
+    try {
+      historyDiff = diffRevision(historyRecord, revision);
+    } catch (caught) {
+      historyDiff = null;
+      ui.toast(caught instanceof Error ? caught.message : String(caught), 'danger');
+    }
+  }
+
+  async function confirmRestore(): Promise<void> {
+    const revision = pendingRestore;
+    const current = historyRecord;
+    pendingRestore = null;
+    if (!revision || !current || !session.adapter) return;
+
+    try {
+      const restored = restoreRuleRevision(current, revision);
+      await saveRuleRecord(session.adapter, restored);
+      try {
+        await recordRuleRevision(session.adapter, restored);
+      } catch {
+        // The restored content is saved; only its snapshot failed.
+      }
+      await session.refreshStorage();
+      await refresh();
+      onload(restored);
+      await openHistory(restored);
+      ui.toast(
+        `Restored revision r${revision.revision} as r${restored.revision}. The old revisions are unchanged.`,
+        'success',
+      );
+    } catch (caught) {
+      ui.toast(describeError(caught), 'danger');
+    }
+  }
+
+  function revisionBytes(revision: RuleRevision): string {
+    return formatBytes(new TextEncoder().encode(revision.content).byteLength);
   }
 
   function formatDate(value: string): string {
@@ -288,6 +388,80 @@
         </span>
       {/if}
     </div>
+
+    {#if historyRecord}
+      <div class="history">
+        <div class="history-head">
+          <span class="history-title">
+            <History size={13} strokeWidth={1.9} aria-hidden="true" />
+            History · {historyRecord.title ?? 'Untitled rule'}
+          </span>
+          <span class="badge badge-accent mono">current r{historyRecord.revision}</span>
+          <div class="history-actions">
+            <button
+              type="button"
+              class="mini"
+              onclick={() => void loadHistory()}
+              disabled={historyBusy}
+            >
+              Refresh
+            </button>
+            <button type="button" class="mini" onclick={closeHistory}>Close</button>
+          </div>
+        </div>
+
+        {#if historyError}
+          <div class="inline-error">{historyError}</div>
+        {:else if historyBusy}
+          <p class="history-note">Reading local revisions…</p>
+        {:else if historyRevisions.length === 0}
+          <p class="history-note">
+            No saved revisions yet. Snapshots are recorded from this build onward, so saves made
+            before revision history existed are not recoverable.
+          </p>
+        {:else}
+          <div class="revision-list">
+            {#each historyRevisions as revision (revision.revision)}
+              <div class="revision-row" class:current={revision.revision === historyRecord.revision}>
+                <span class="mono revision-number">r{revision.revision}</span>
+                <span class="faint">{formatDate(revision.recordedAt)}</span>
+                <span class="faint">{revisionBytes(revision)}</span>
+                {#if revision.revision === historyRecord.revision}
+                  <span class="badge badge-accent">current</span>
+                {/if}
+                <span class="revision-title">{revision.metadata.title ?? 'Untitled Sigma rule'}</span>
+                <div class="revision-actions">
+                  {#if revision.revision !== historyRecord.revision}
+                    <button type="button" class="mini" onclick={() => showDiff(revision)}>Diff</button>
+                    <button type="button" class="mini" onclick={() => (pendingRestore = revision)}>
+                      Restore
+                    </button>
+                  {/if}
+                </div>
+              </div>
+            {/each}
+          </div>
+        {/if}
+
+        {#if historyDiff}
+          <div class="diff-head">
+            <span class="mono">r{historyDiff.fromRevision} → r{historyDiff.toRevision}</span>
+            <span class="faint">+{historyDiff.added} / −{historyDiff.removed} lines</span>
+            <span class="faint">
+              {historyDiff.hunks} hunk{historyDiff.hunks === 1 ? '' : 's'}
+            </span>
+            <button type="button" class="mini" onclick={() => (historyDiff = null)}>Hide</button>
+          </div>
+          <pre class="diff-output mono">{historyDiff.diff}</pre>
+          {#if historyDiff.coarse}
+            <p class="history-note">
+              The changed region was too large for an exact line diff; it is shown as a full
+              replacement.
+            </p>
+          {/if}
+        {/if}
+      </div>
+    {/if}
 
     {#if error}
       <div class="inline-error">{error}</div>
@@ -349,6 +523,14 @@
             </div>
             <div class="rule-actions">
               <button type="button" class="mini" onclick={() => load(record)}>Load</button>
+              <button
+                type="button"
+                class="mini"
+                title="Show local revisions and diffs"
+                onclick={() => void openHistory(record)}
+              >
+                History
+              </button>
               <button type="button" class="mini" onclick={() => exportOne(record)}>Export</button>
               <button
                 type="button"
@@ -376,6 +558,19 @@
   danger
   onconfirm={() => void confirmDelete()}
   oncancel={() => (pendingDelete = null)}
+/>
+
+<ConfirmDialog
+  open={pendingRestore !== null}
+  title="Restore this revision?"
+  message={pendingRestore && historyRecord
+    ? `Restoring r${pendingRestore.revision} saves its content as a new revision r${
+        historyRecord.revision + 1
+      }. The editor is replaced, including any unsaved edits. Existing revisions are kept.`
+    : ''}
+  confirmLabel="Restore revision"
+  onconfirm={() => void confirmRestore()}
+  oncancel={() => (pendingRestore = null)}
 />
 
 <style>
@@ -439,6 +634,115 @@
   .count {
     white-space: nowrap;
     font-size: 10.5px;
+  }
+
+  .history {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 9px;
+    border: 1px solid var(--accent-line);
+    border-radius: var(--radius);
+    background: var(--accent-soft);
+  }
+
+  .history-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .history-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+  }
+
+  .history-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .history-note {
+    color: var(--muted-2);
+    font-size: 10.5px;
+    line-height: 1.5;
+  }
+
+  .revision-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .revision-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 5px 7px;
+    border-bottom: 1px solid var(--border-soft);
+    background: var(--surface-2);
+    font-size: 10.5px;
+  }
+
+  .revision-row:last-child {
+    border-bottom: 0;
+  }
+
+  .revision-row.current {
+    background: var(--surface-3);
+  }
+
+  .revision-number {
+    min-width: 34px;
+    color: var(--text);
+  }
+
+  .revision-title {
+    flex: 1 1 160px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .revision-actions {
+    display: flex;
+    gap: 3px;
+    margin-left: auto;
+  }
+
+  .diff-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 10.5px;
+  }
+
+  .diff-head .mini {
+    margin-left: auto;
+  }
+
+  .diff-output {
+    margin: 0;
+    max-height: 320px;
+    overflow: auto;
+    padding: 8px 9px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-size: 10.5px;
+    line-height: 1.5;
+    white-space: pre;
   }
 
   .rule-list {
