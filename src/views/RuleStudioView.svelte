@@ -9,8 +9,10 @@
   import ShieldCheck from 'lucide-svelte/icons/shield-check';
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
   import Upload from 'lucide-svelte/icons/upload';
+  import RuleLibraryPanel from '@/components/rules/RuleLibraryPanel.svelte';
   import { ui } from '@/app/ui.svelte';
   import { SIGMA_MAX_INPUT_BYTES, SIGMA_SCHEMA_SOURCE } from '@/core/rules/sigma-meta';
+  import type { RuleRecord } from '@/core/rules/library';
   import type { SigmaIssue, SigmaRuleSummary, SigmaValidationReport } from '@/core/rules/sigma';
   import type { SigmaTestResult } from '@/core/rules/sigma-evaluator';
 
@@ -62,6 +64,7 @@ tags:
   let error = $state<string | null>(null);
   let validating = $state(false);
   let fileInput: HTMLInputElement | null = $state(null);
+  let currentRecordId = $state<string | null>(null);
 
   let eventsText = $state('');
   let testResult = $state<SigmaTestResult | null>(null);
@@ -120,14 +123,38 @@ tags:
 
   function loadExample(): void {
     rule = EXAMPLE_RULE;
+    currentRecordId = null;
     report = null;
     error = null;
   }
 
   function clear(): void {
     rule = '';
+    currentRecordId = null;
     report = null;
     error = null;
+  }
+
+  function newRule(): void {
+    clear();
+    ui.toast('Started a new unsaved rule.', 'info');
+  }
+
+  function loadRecord(record: RuleRecord): void {
+    rule = record.content;
+    currentRecordId = record.id;
+    report = null;
+    error = null;
+    testResult = null;
+    testError = null;
+  }
+
+  function handleSaved(record: RuleRecord): void {
+    currentRecordId = record.id;
+  }
+
+  function handleDeletedRecord(id: string): void {
+    if (currentRecordId === id) currentRecordId = null;
   }
 
   async function openFile(event: Event): Promise<void> {
@@ -140,6 +167,7 @@ tags:
       return;
     }
     rule = await file.text();
+    currentRecordId = null;
     report = null;
     error = null;
   }
@@ -390,6 +418,15 @@ tags:
     </section>
   </div>
 
+  <RuleLibraryPanel
+    {rule}
+    {currentRecordId}
+    onload={loadRecord}
+    onsaved={handleSaved}
+    onnew={newRule}
+    ondelete={handleDeletedRecord}
+  />
+
   <section class="panel test-panel">
     <div class="panel-head">
       <span class="panel-title">Local test · documented subset</span>
@@ -545,7 +582,8 @@ tags:
         <p>
           <strong>Offline and pinned.</strong> The schema is vendored from SigmaHQ and checksummed in
           {SIGMA_SCHEMA_SOURCE.path}; Ajv loads only when validation first runs. Local testing evaluates
-          the documented subset on your sample events. A persistent rule library remains planned.
+          the documented subset on your sample events. The library stores rules in this browser; version
+          history and diffs remain planned.
         </p>
       </div>
     </div>

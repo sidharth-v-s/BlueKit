@@ -1,4 +1,4 @@
-# Phase 4 — Rule Studio: Sigma Validation and Local Testing
+# Phase 4 — Rule Studio: Sigma Validation, Local Testing, and Library
 
 Phase 4 starts with a narrow, honest slice: validating Sigma rules and testing a
 documented subset against sample events in the browser. Rule Studio is reachable
@@ -6,8 +6,9 @@ at `#/rules`, from the sidebar, and from the command palette.
 
 The slice checks whether a rule is well-formed YAML, whether it matches the
 official Sigma detection-rule schema, and how the subset evaluator behaves on
-pasted JSON events. It does **not** score the rule, replay production telemetry,
-or claim that a matching sample proves the detection works.
+pasted JSON events. Rules can be saved locally, imported, exported, and kept with
+source/licence attribution. It does **not** score the rule, replay production
+telemetry, or claim that a matching sample proves the detection works.
 
 ## Implemented
 
@@ -22,6 +23,8 @@ or claim that a matching sample proves the detection works.
 | Schema attribution | Schema title, SHA-256 prefix, and validator versions in the view |
 | Local test | Documented evaluator subset over one event or an array of events |
 | Test results | Per-event match state, matched selections, unsupported-feature failures |
+| Rule library | Local save/update/delete, search, revisions, and load back into the editor |
+| Import/export | Single YAML rules and versioned `bluekit.rules` bundles with attribution |
 
 A rule must be a single non-empty YAML document. The editor cap is 1 MiB. The
 view reports YAML and schema failures separately and never merges them into a
@@ -113,6 +116,55 @@ Additional semantics:
 The view labels every result as local, authoring feedback. It does not use the
 words “detection verified” or “test passed”.
 
+## Rule library, import, and export
+
+Saved rules live in the existing `rules` IndexedDB store. They are included in
+the normal BlueKit archive export/import path, so a workspace backup already
+carries the library. When IndexedDB is unavailable, the adapter falls back to
+memory and the view shows a `session only` badge: rules work until the tab
+closes and should be exported first.
+
+Saving:
+
+- **Save rule** creates a local record with a local id.
+- **Save changes** updates the loaded record, keeps its id and creation time,
+  increments `revision`, and refreshes `updatedAt`.
+- Saving a draft with schema issues is allowed. The record keeps `schemaValid`
+  so the library can label it `schema issues` rather than pretending it passed.
+- Deleting is confirmed and removes only the local record.
+
+Importing:
+
+- A single `.yml` or `.yaml` file is validated for metadata and stored as an
+  imported draft with the filename as its source and `Unknown` as its licence.
+  The UI asks the analyst to review source and licence before trusting it.
+- A `.json` file is read as a `bluekit.rules` bundle (format
+  `bluekit.rules`, schema version 1, `dataHandling: local-only`).
+- Import never overwrites an existing record. Every imported rule receives a
+  fresh local id; the Sigma `id` inside the YAML is preserved as metadata.
+- Bundle limits are 500 rules and 8 MiB. Content is still capped at the 1 MiB
+  rule limit.
+
+Exporting:
+
+- **Export** downloads one `.yml` file with attribution and validation comments
+  prepended. YAML documents that start with a `%YAML` directive are exported
+  unchanged so the directive remains first.
+- **Export all** downloads a `bluekit.rules` JSON bundle. Export fails rather
+  than silently truncating when the library exceeds the bundle limits.
+- Archives and bundles are local files. Nothing is uploaded.
+
+Attribution records `source`, optional `url`, `license`, `importedAt`, and a
+note. It is metadata, not a verification or redistribution guarantee.
+
+Known limits:
+
+- Revision history is a counter, not a stored history; diffs between versions
+  are not implemented yet.
+- Collections and favourites are not implemented yet.
+- Imported bundle records are not validated against the schema at import time;
+  validation happens when a rule is saved from the editor or checked manually.
+
 ## Lazy loading and bundle
 
 Ajv, `ajv-formats`, and the schema are loaded with a dynamic import the first
@@ -129,8 +181,10 @@ without pulling in the validator.
 
 - It does not replay production telemetry, schedule tests, or route events by
   logsource. Only pasted sample events are evaluated.
-- It does not persist rules. Rule library storage, import/export, and
-  attribution remain planned.
+- It does not store rule version history, diff revisions, or support collections
+  and favourites yet.
+- It does not import repository-wide rule packs in one operation or resolve
+  Sigma includes.
 - It does not convert rules to backend query languages.
 - It does not validate correlation rules against a correlation schema.
 - It does not judge detection quality, false-positive rate, or coverage.
@@ -160,5 +214,13 @@ without pulling in the validator.
 - event count and object-shape limits;
 - `logsource` remaining metadata.
 
-Run `npm test` and `npm run check` before changing the validator, evaluator, or
-schema.
+`tests/unit/rule-library.test.ts` covers:
+
+- record creation, metadata normalization, revisions, and attribution;
+- storage listing, deletion, and ignoring malformed persisted records;
+- bundle round-trips with fresh ids and preserved attribution;
+- malformed and over-limit bundle rejection;
+- single-rule attribution headers and safe filenames.
+
+Run `npm test` and `npm run check` before changing the validator, evaluator,
+library, or schema.
