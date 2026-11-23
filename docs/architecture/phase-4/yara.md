@@ -119,8 +119,10 @@ and covers:
 - idempotent `free()` and refusing scans after release;
 - validate-only calls that release compiled rules.
 
-The browser worker path is not covered by Playwright in this environment
-because no browser is installed.
+The browser worker path has an end-to-end smoke test in
+`tests/e2e/yara.spec.ts` that validates the example rule and scans an uploaded
+file. It was not run in this environment because Playwright has no installed
+browser; run `npx playwright install chromium` before `npm run test:e2e`.
 
 ## Known gaps
 
