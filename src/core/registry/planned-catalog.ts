@@ -555,15 +555,6 @@ export const PLANNED_CATALOG: readonly ToolManifest[] = [
   // Detection engineering
   // ---------------------------------------------------------------------------
   planned({
-    id: 'detection.yara-studio',
-    name: 'YARA Studio',
-    category: 'detection',
-    description: 'Author, validate, and scan with YARA rules locally in the browser.',
-    tags: ['yara', 'rules', 'scan', 'malware'],
-    phase: 4,
-    runtime: 'wasm-worker',
-  }),
-  planned({
     id: 'detection.sigma-studio',
     name: 'Sigma Studio',
     category: 'detection',
