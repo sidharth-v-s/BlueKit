@@ -1,14 +1,18 @@
 # Phase 4 — Rule Studio: Sigma Validation, Local Testing, and Library
 
-Phase 4 starts with a narrow, honest slice: validating Sigma rules and testing a
-documented subset against sample events in the browser. Rule Studio is reachable
-at `#/rules`, from the sidebar, and from the command palette.
+Phase 4 starts with two honest slices. Sigma Rule Studio at `#/rules` validates
+rules and tests a documented subset against sample events in the browser. YARA
+Studio at `#/yara` compiles YARA rules with the pinned YARA-X WebAssembly build
+and scans local files in the tool worker. Both are reachable from the sidebar and
+the command palette.
 
-The slice checks whether a rule is well-formed YAML, whether it matches the
+The Sigma slice checks whether a rule is well-formed YAML, whether it matches the
 official Sigma detection-rule schema, and how the subset evaluator behaves on
 pasted JSON events. Rules can be saved locally, imported, exported, and kept with
-source/licence attribution. It does **not** score the rule, replay production
-telemetry, or claim that a matching sample proves the detection works.
+source/licence attribution. The YARA slice reports the engine's compile results
+and matches, with explicit limits and no network access. Neither slice scores a
+rule, replays production telemetry, or claims that one matching sample proves the
+detection works.
 
 ## Implemented
 
@@ -25,6 +29,7 @@ telemetry, or claim that a matching sample proves the detection works.
 | Test results | Per-event match state, matched selections, unsupported-feature failures |
 | Rule library | Local save/update/delete, search, revisions, and load back into the editor |
 | Import/export | Single YAML rules and versioned `bluekit.rules` bundles with attribution |
+| YARA Studio | See [YARA Studio](yara.md): YARA-X compile validation, local multi-file scan, snippets, progress/cancel, export |
 
 A rule must be a single non-empty YAML document. The editor cap is 1 MiB. The
 view reports YAML and schema failures separately and never merges them into a
@@ -177,18 +182,37 @@ application's initial bundle includes the schema or the evaluator.
 needed for the initial UI, so the view can show the cap and schema fingerprint
 without pulling in the validator.
 
+## YARA Studio
+
+YARA Studio mirrors the same honesty rules for a different engine. See the
+dedicated [YARA Studio notes](yara.md) for the engine contract, feature matrix,
+limits, and test coverage. In short:
+
+- compilation and scanning run in the tool worker;
+- the YARA-X WASM module is a dynamic worker import and is never part of startup;
+- rules and bytes never leave the browser;
+- the engine timeout is best effort and the worker budget is the hard stop;
+- matches name the engine and version and keep the original engine messages.
+
+YARA rules are exported as source files from the editor. A persistent YARA rule
+library, collections, revisions, and diffs are not implemented yet.
+
 ## What this slice does not do
 
 - It does not replay production telemetry, schedule tests, or route events by
   logsource. Only pasted sample events are evaluated.
-- It does not store rule version history, diff revisions, or support collections
-  and favourites yet.
+- It does not store Sigma rule version history, diff revisions, or support
+  collections and favourites yet.
 - It does not import repository-wide rule packs in one operation or resolve
   Sigma includes.
 - It does not convert rules to backend query languages.
 - It does not validate correlation rules against a correlation schema.
 - It does not judge detection quality, false-positive rate, or coverage.
 - It does not fetch anything. `logsource` is metadata only.
+- It does not provide a YARA rule library, YARA syntax highlighting, or YARA
+  collections and revision diffs yet.
+- It does not scan archives, directories, process memory, or anything other than
+  user-selected files.
 
 ## Testing
 
@@ -222,5 +246,10 @@ without pulling in the validator.
 - malformed and over-limit bundle rejection;
 - single-rule attribution headers and safe filenames.
 
+`tests/unit/yara.test.ts`, `tests/unit/yara-job.test.ts`, and
+`tests/unit/yara-engine.test.ts` cover the YARA source/file caps, import notes,
+job normalization, result truncation and previews, and the real pinned WASM
+build. See [YARA Studio](yara.md) for the fixture list.
+
 Run `npm test` and `npm run check` before changing the validator, evaluator,
-library, or schema.
+library, YARA engine, or schema.

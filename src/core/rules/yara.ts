@@ -40,6 +40,8 @@ export interface YaraPatternMatch {
   length: number;
   /** Hex preview of the matched bytes, when they were available. */
   preview: string | null;
+  /** Printable ASCII preview of the matched bytes, when they were available. */
+  ascii: string | null;
 }
 
 export interface YaraPatternHit {
@@ -231,6 +233,30 @@ function hexPreview(
   return remaining > 0 ? `${parts.join(' ')} …` : parts.join(' ');
 }
 
+function asciiPreview(
+  data: Uint8Array | undefined,
+  offset: number,
+  length: number,
+  previewBytes: number,
+): string | null {
+  if (!data || data.length === 0) return null;
+  const start = Math.max(0, Math.min(Math.trunc(offset), data.length));
+  if (start >= data.length) return null;
+  const wanted = Math.max(1, Math.min(Math.trunc(length), previewBytes));
+  const end = Math.min(data.length, start + wanted);
+  let result = '';
+  for (let index = start; index < end; index += 1) {
+    const byte = data[index] ?? 0;
+    if (byte >= 0x20 && byte <= 0x7e) {
+      result += String.fromCharCode(byte);
+    } else {
+      result += '·';
+    }
+  }
+  const remaining = Math.max(0, Math.trunc(length) - (end - start));
+  return remaining > 0 ? `${result}…` : result;
+}
+
 function normalizeMetadata(value: unknown): YaraMetadataEntry[] {
   const entries: YaraMetadataEntry[] = [];
   const push = (identifier: unknown, entryValue: unknown) => {
@@ -284,6 +310,7 @@ function normalizePatterns(
         offset,
         length,
         preview: hexPreview(options.data, offset, length, options.previewBytes),
+        ascii: asciiPreview(options.data, offset, length, options.previewBytes),
       });
     }
     patterns.push({

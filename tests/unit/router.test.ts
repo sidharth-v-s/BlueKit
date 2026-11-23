@@ -8,6 +8,8 @@ describe('parseHash', () => {
     expect(parseHash('#/mailsleuth')).toEqual({ name: 'mailsleuth' });
     expect(parseHash('#/ioc')).toEqual({ name: 'ioc' });
     expect(parseHash('#/ioc/')).toEqual({ name: 'ioc' });
+    expect(parseHash('#/rules')).toEqual({ name: 'rules' });
+    expect(parseHash('#/yara')).toEqual({ name: 'yara' });
   });
 
   it('parses a tool id and decodes it', () => {

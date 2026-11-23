@@ -112,8 +112,8 @@ describe('YARA scan result normalization', () => {
       { identifier: 'enabled', value: true },
     ]);
     expect(outcome.matches[0]?.patterns[0]?.matches).toEqual([
-      { offset: 0, length: 4, preview: '42 6c 75 65' },
-      { offset: 6, length: 4, preview: '74 …' },
+      { offset: 0, length: 4, preview: '42 6c 75 65', ascii: 'Blue' },
+      { offset: 6, length: 4, preview: '74 …', ascii: 't…' },
     ]);
   });
 

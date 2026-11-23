@@ -4,6 +4,7 @@
   import Download from 'lucide-svelte/icons/download';
   import LayoutDashboard from 'lucide-svelte/icons/layout-dashboard';
   import MailSearch from 'lucide-svelte/icons/mail-search';
+  import ScanSearch from 'lucide-svelte/icons/scan-search';
   import Search from 'lucide-svelte/icons/search';
   import Settings from 'lucide-svelte/icons/settings';
   import ShieldCheck from 'lucide-svelte/icons/shield-check';
@@ -73,6 +74,14 @@
       keywords: 'rules sigma yaml detection validate author',
       icon: ShieldCheck,
       run: () => router.navigate('/rules'),
+    },
+    {
+      id: 'yara',
+      label: 'Open YARA Studio',
+      hint: 'YARA scan',
+      keywords: 'yara rules scan malware strings wasm detection',
+      icon: ScanSearch,
+      run: () => router.navigate('/yara'),
     },
     {
       id: 'tools',

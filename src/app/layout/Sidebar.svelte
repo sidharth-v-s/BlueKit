@@ -8,6 +8,7 @@
   import MailSearch from 'lucide-svelte/icons/mail-search';
   import PanelLeftClose from 'lucide-svelte/icons/panel-left-close';
   import PanelLeftOpen from 'lucide-svelte/icons/panel-left-open';
+  import ScanSearch from 'lucide-svelte/icons/scan-search';
   import ShieldCheck from 'lucide-svelte/icons/shield-check';
   import Workflow from 'lucide-svelte/icons/workflow';
   import CategoryIcon from '@/components/CategoryIcon.svelte';
@@ -33,6 +34,7 @@
     { id: 'recipes', label: 'Recipes', path: '/recipes', icon: Workflow },
     { id: 'investigations', label: 'Investigations', path: '/investigations', icon: FolderSearch },
     { id: 'rules', label: 'Rule Studio', path: '/rules', icon: ShieldCheck },
+    { id: 'yara', label: 'YARA Studio', path: '/yara', icon: ScanSearch },
     { id: 'reference', label: 'Reference', path: '/reference', icon: BookOpen },
   ];
 

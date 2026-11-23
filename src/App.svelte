@@ -19,6 +19,7 @@
   import SettingsView from '@/views/SettingsView.svelte';
   import ToolView from '@/views/ToolView.svelte';
   import ToolsView from '@/views/ToolsView.svelte';
+  import YaraStudioView from '@/views/YaraStudioView.svelte';
 
   const collapsed = $derived(session.settings.sidebarCollapsed);
 
@@ -40,6 +41,8 @@
         return 'Investigations';
       case 'rules':
         return 'Rule Studio';
+      case 'yara':
+        return 'YARA Studio';
       case 'reference':
         return 'Reference';
       case 'settings':
@@ -127,6 +130,8 @@
           <PlannedView kind="investigations" />
         {:else if router.route.name === 'rules'}
           <RuleStudioView />
+        {:else if router.route.name === 'yara'}
+          <YaraStudioView />
         {:else if router.route.name === 'reference'}
           <PlannedView kind="reference" />
         {:else}
