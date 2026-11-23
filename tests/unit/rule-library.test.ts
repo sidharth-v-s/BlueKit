@@ -135,6 +135,7 @@ describe('rule storage', () => {
     const adapter = new MemoryAdapter();
     await adapter.put('rules', 'bad', { id: 'bad', content: 42 });
     await adapter.put('rules', 'empty', { id: 'empty', content: '   ' });
+    await adapter.put('rules', 'other-format', { id: 'other', format: 'yara', content: 'rule x {}' });
     await adapter.put('rules', 'good', build());
 
     const records = await readRuleRecords(adapter);

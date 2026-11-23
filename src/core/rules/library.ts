@@ -205,6 +205,8 @@ export function buildRuleRecord(input: BuildRuleRecordInput): RuleRecord {
 
 function normalizeRuleRecord(value: unknown, freshId = false): RuleRecord | null {
   if (!isRecord(value)) return null;
+  // The rules store is shared with future formats; only claim Sigma records.
+  if (value.format !== undefined && value.format !== 'sigma') return null;
   if (typeof value.content !== 'string' || value.content.trim().length === 0) return null;
   if (new TextEncoder().encode(value.content).byteLength > SIGMA_MAX_INPUT_BYTES) return null;
 
@@ -332,7 +334,9 @@ export function parseRulesBundle(text: string): RuleRecord[] {
   return parsed.rules.map((entry, index) => {
     const record = normalizeRuleRecord(entry, true);
     if (!record) {
-      throw new RuleLibraryError(`Rule ${index + 1} is missing a valid "content" string.`);
+      throw new RuleLibraryError(
+        `Rule ${index + 1} is missing a valid "content" string, is not Sigma, or is oversized.`,
+      );
     }
     return {
       ...record,
