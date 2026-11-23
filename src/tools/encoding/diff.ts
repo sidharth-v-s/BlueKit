@@ -68,9 +68,7 @@ export interface DiffResult {
   removed: number;
   hunks: number;
   coarse: boolean;
-}
-
-function toLines(text: string): string[] {
+}function toLines(text: string): string[] {
   if (text.length === 0) return [];
   const lines = text.split(/\r?\n/u);
   if (lines.length > 1 && lines[lines.length - 1] === '') lines.pop();
@@ -217,6 +215,30 @@ function buildUnifiedDiff(ops: DiffOp[], contextLines: number): { diff: string; 
   return { diff: `${lines.join('\n')}\n`, hunks: ranges.length };
 }
 
+/**
+ * Compare two documents line by line.
+ *
+ * Exported so other features (rule revision history) share one diff
+ * implementation instead of carrying a second, subtly different one.
+ */
+export function lineDiff(
+  left: string,
+  right: string,
+  options: { context?: number; ignoreWhitespace?: boolean } = {},
+): DiffResult {
+  const contextLines = Math.max(0, Math.min(20, options.context ?? 3));
+  const { ops, coarse } = lcsDiff(toLines(left), toLines(right), options.ignoreWhitespace ?? false);
+  const { diff, hunks } = buildUnifiedDiff(ops, contextLines);
+
+  return {
+    diff: diff.length > 0 ? diff : 'No differences.\n',
+    added: ops.filter((op) => op.type === 'insert').length,
+    removed: ops.filter((op) => op.type === 'delete').length,
+    hunks,
+    coarse,
+  };
+}
+
 export function splitComparison(text: string, separator: string): { left: string; right: string } {
   const lines = text.split(/\r?\n/u);
   const index = lines.findIndex((line) => line.trim() === separator);
@@ -241,19 +263,10 @@ export function diffText(
 
   const contextLines = Math.max(0, Math.min(20, options.context ?? 3));
   const { left, right } = splitComparison(text, separator);
-  const leftLines = toLines(left);
-  const rightLines = toLines(right);
-
-  const { ops, coarse } = lcsDiff(leftLines, rightLines, options.ignoreWhitespace ?? false);
-  const { diff, hunks } = buildUnifiedDiff(ops, contextLines);
-
-  return {
-    diff: diff.length > 0 ? diff : 'No differences.\n',
-    added: ops.filter((op) => op.type === 'insert').length,
-    removed: ops.filter((op) => op.type === 'delete').length,
-    hunks,
-    coarse,
-  };
+  return lineDiff(left, right, {
+    context: contextLines,
+    ignoreWhitespace: options.ignoreWhitespace ?? false,
+  });
 }
 
 async function execute(input: RunnerInput): Promise<ToolResult<string>> {

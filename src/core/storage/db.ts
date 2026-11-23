@@ -7,7 +7,8 @@
  */
 
 export const DATABASE_NAME = 'bluekit';
-export const DATABASE_VERSION = 1;
+/** v2 adds `ruleRevisions`; the migration creates it without touching v1 data. */
+export const DATABASE_VERSION = 2;
 
 export const STORES = [
   'meta',
@@ -18,6 +19,7 @@ export const STORES = [
   'recipes',
   'recipeRuns',
   'rules',
+  'ruleRevisions',
   'ruleCollections',
   'ruleTestCases',
   'investigations',
@@ -173,22 +175,39 @@ export class MemoryAdapter implements StorageAdapter {
 }
 
 function migrate(db: IDBDatabase, oldVersion: number, transaction: IDBTransaction | null): void {
-  // v1: create every logical store. Future versions add stores/indexes here and
-  // must keep existing user data intact (spec §11.2, §13.3).
+  // v1: create every logical store. v2: add `ruleRevisions`. Creating only the
+  // missing stores keeps existing user data intact (spec §11.2, §13.3).
   for (const store of STORES) {
     if (!db.objectStoreNames.contains(store)) {
       db.createObjectStore(store, { keyPath: 'key' });
     }
   }
 
+  // Record the current schema version on first open and on every upgrade. The
+  // original creation time is preserved when the meta record already exists.
+  const meta = transaction?.objectStore('meta');
+  if (!meta) return;
+  const now = new Date().toISOString();
   if (oldVersion === 0) {
-    const meta = transaction?.objectStore('meta');
-    meta?.put({
+    meta.put({
       key: 'schema',
-      value: { schemaVersion: DATABASE_VERSION, createdAt: new Date().toISOString() },
-      updatedAt: new Date().toISOString(),
+      value: { schemaVersion: DATABASE_VERSION, createdAt: now },
+      updatedAt: now,
     } satisfies StoredRecord);
+    return;
   }
+  const existing = meta.get('schema');
+  existing.onsuccess = () => {
+    const record = existing.result as StoredRecord<{ schemaVersion?: number; createdAt?: string }> | undefined;
+    meta.put({
+      key: 'schema',
+      value: {
+        schemaVersion: DATABASE_VERSION,
+        createdAt: record?.value?.createdAt ?? now,
+      },
+      updatedAt: now,
+    } satisfies StoredRecord);
+  };
 }
 
 export interface OpenStorageResult {

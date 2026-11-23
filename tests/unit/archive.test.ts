@@ -51,6 +51,17 @@ describe('archive export', () => {
     const archive = await exportArchive(await populatedAdapter(), '0.1.0');
     expect(archiveStats(archive)).toMatchObject({ records: 2, stores: 2 });
   });
+
+  it('includes rule revision snapshots in exports', async () => {
+    const adapter = await populatedAdapter();
+    await adapter.put('ruleRevisions', 'rule-1:1', { ruleId: 'rule-1', revision: 1 });
+
+    const archive = await exportArchive(adapter, '0.1.0');
+
+    expect(archive.data.ruleRevisions).toEqual([
+      { key: 'rule-1:1', value: { ruleId: 'rule-1', revision: 1 } },
+    ]);
+  });
 });
 
 describe('archive import validation', () => {
@@ -72,6 +83,13 @@ describe('archive import validation', () => {
     expect(archive).toEqual(original);
     expect(stats.records).toBe(2);
     expect(stats.stores).toBe(2);
+  });
+
+  it('still reads a version 1 archive that predates revision history', () => {
+    const text = JSON.stringify({ ...valid(), schemaVersion: 1 });
+    const { archive } = parseArchive(text);
+    expect(archive.schemaVersion).toBe(1);
+    expect(archive.data.settings).toHaveLength(1);
   });
 
   it('applies a parsed archive to a fresh adapter', async () => {

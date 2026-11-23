@@ -10,7 +10,9 @@ import type { StorageAdapter, StoreName } from '@/core/storage/db';
  */
 
 export const ARCHIVE_FORMAT = 'bluekit.archive';
-export const ARCHIVE_SCHEMA_VERSION = 1;
+/** v2 adds `ruleRevisions`; v1 archives remain readable. */
+export const ARCHIVE_SCHEMA_VERSION = 2;
+export const SUPPORTED_ARCHIVE_SCHEMA_VERSIONS: readonly number[] = [1, 2];
 export const MAX_ARCHIVE_BYTES = 25 * 1024 * 1024;
 export const MAX_ARCHIVE_RECORDS = 10_000;
 export const MAX_KEY_LENGTH = 200;
@@ -28,6 +30,7 @@ export const EXPORTABLE_STORES = [
   'recipes',
   'recipeRuns',
   'rules',
+  'ruleRevisions',
   'ruleCollections',
   'ruleTestCases',
   'investigations',
@@ -114,9 +117,9 @@ export function parseArchive(text: string): { archive: BlueKitArchive; stats: Ar
   if (archive.format !== ARCHIVE_FORMAT) {
     throw new ArchiveValidationError(`Not a BlueKit archive (expected format "${ARCHIVE_FORMAT}").`);
   }
-  if (archive.schemaVersion !== ARCHIVE_SCHEMA_VERSION) {
+  if (!SUPPORTED_ARCHIVE_SCHEMA_VERSIONS.includes(archive.schemaVersion as number)) {
     throw new ArchiveValidationError(
-      `Unsupported archive schema version ${String(archive.schemaVersion)}; this build reads version ${ARCHIVE_SCHEMA_VERSION}.`,
+      `Unsupported archive schema version ${String(archive.schemaVersion)}; this build reads version ${SUPPORTED_ARCHIVE_SCHEMA_VERSIONS.join(' and ')}.`,
     );
   }
   if (archive.dataHandling !== 'local-only') {

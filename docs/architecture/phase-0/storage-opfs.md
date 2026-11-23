@@ -18,15 +18,15 @@ What can BlueKit safely keep on the user's machine, how does it fail, and what m
 
 ### IndexedDB adapter
 
-`IndexedDbAdapter` opens database `bluekit` at version 1 and creates the stores declared in `STORES`:
+`IndexedDbAdapter` opens database `bluekit` at version 2 and creates the stores declared in `STORES`:
 
 ```
 meta, settings, favorites, recentTools, toolHistory, recipes, recipeRuns,
-rules, ruleCollections, ruleTestCases, investigations, evidenceItems,
-iocItems, enrichmentCache, datasetVersions, importJobs
+rules, ruleRevisions, ruleCollections, ruleTestCases, investigations,
+evidenceItems, iocItems, enrichmentCache, datasetVersions, importJobs
 ```
 
-Each record is `{ key, value, updatedAt }` under a `keyPath: "key"` store. The `meta` store records `{ schemaVersion: 1, createdAt }` on first creation.
+Each record is `{ key, value, updatedAt }` under a `keyPath: "key"` store. The `meta` store records `{ schemaVersion: 2, createdAt }`. The v2 upgrade adds `ruleRevisions` and leaves existing v1 records in place.
 
 Unit tests run against `fake-indexeddb` and cover:
 

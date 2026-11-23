@@ -74,7 +74,7 @@ describe('IndexedDbAdapter', () => {
       expect(await store.count(name)).toBe(name === 'meta' ? 1 : 0);
     }
     const schema = await store.get<{ schemaVersion: number }>('meta', 'schema');
-    expect(schema?.schemaVersion).toBe(1);
+    expect(schema?.schemaVersion).toBe(2);
   });
 
   it('round-trips typed values with timestamps', async () => {
@@ -84,6 +84,39 @@ describe('IndexedDbAdapter', () => {
     expect(record?.value).toEqual({ steps: ['a', 'b'] });
     expect(record?.key).toBe('recipe-1');
     expect(record?.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/u);
+  });
+
+  it('upgrades a version 1 database without losing records', async () => {
+    const name = uniqueName();
+    const v1 = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(name, 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        for (const store of STORES) {
+          if (store !== 'ruleRevisions' && !db.objectStoreNames.contains(store)) {
+            db.createObjectStore(store, { keyPath: 'key' });
+          }
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error ?? new Error('open failed'));
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = v1.transaction('rules', 'readwrite');
+      tx.objectStore('rules').put({ key: 'r1', value: { content: 'x' }, updatedAt: new Date().toISOString() });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error ?? new Error('write failed'));
+    });
+    v1.close();
+
+    const result = await openStorage({ name });
+    opened.push(result.adapter);
+
+    expect(result.adapter.backend).toBe('indexeddb');
+    expect(await result.adapter.get('rules', 'r1')).toEqual({ content: 'x' });
+    expect(await result.adapter.count('ruleRevisions')).toBe(0);
+    const schema = await result.adapter.get<{ schemaVersion: number }>('meta', 'schema');
+    expect(schema?.schemaVersion).toBe(2);
   });
 
   it('falls back to memory when IndexedDB cannot open', async () => {

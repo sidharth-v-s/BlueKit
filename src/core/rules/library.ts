@@ -123,7 +123,7 @@ function sanitizeLogsource(value: unknown): SigmaLogsource | null {
   return Object.keys(logsource).length > 0 ? logsource : null;
 }
 
-function sanitizeAttribution(value: unknown): RuleAttribution | null {
+export function sanitizeRuleAttribution(value: unknown): RuleAttribution | null {
   if (!isRecord(value)) return null;
   const source = textOrNull(value.source, 500);
   if (!source) return null;
@@ -138,19 +138,20 @@ function sanitizeAttribution(value: unknown): RuleAttribution | null {
   };
 }
 
-function sanitizeMetadata(input: RuleMetadata): RuleMetadata {
+export function sanitizeRuleMetadata(input: unknown): RuleMetadata {
+  const value = isRecord(input) ? input : {};
   return {
-    title: textOrNull(input.title, 256),
-    sigmaId: textOrNull(input.sigmaId, 256),
-    status: textOrNull(input.status, 100),
-    level: textOrNull(input.level, 100),
-    author: textOrNull(input.author, 1_000),
-    description: textOrNull(input.description),
-    logsource: sanitizeLogsource(input.logsource),
-    tags: stringList(input.tags, MAX_TAGS),
-    warnings: stringList(input.warnings, MAX_WARNINGS),
-    schemaValid: typeof input.schemaValid === 'boolean' ? input.schemaValid : null,
-    schemaSha256: textOrNull(input.schemaSha256, 128),
+    title: textOrNull(value.title, 256),
+    sigmaId: textOrNull(value.sigmaId, 256),
+    status: textOrNull(value.status, 100),
+    level: textOrNull(value.level, 100),
+    author: textOrNull(value.author, 1_000),
+    description: textOrNull(value.description),
+    logsource: sanitizeLogsource(value.logsource),
+    tags: stringList(value.tags, MAX_TAGS),
+    warnings: stringList(value.warnings, MAX_WARNINGS),
+    schemaValid: typeof value.schemaValid === 'boolean' ? value.schemaValid : null,
+    schemaSha256: textOrNull(value.schemaSha256, 128),
   };
 }
 
@@ -187,7 +188,7 @@ export function buildRuleRecord(input: BuildRuleRecordInput): RuleRecord {
 
   const previous = input.previous ?? null;
   const now = (input.now ?? new Date()).toISOString();
-  const metadata = sanitizeMetadata(input.metadata);
+  const metadata = sanitizeRuleMetadata(input.metadata);
 
   return {
     schemaVersion: 1,
@@ -237,7 +238,7 @@ function normalizeRuleRecord(value: unknown, freshId = false): RuleRecord | null
     schemaValid: typeof value.schemaValid === 'boolean' ? value.schemaValid : null,
     schemaSha256: textOrNull(value.schemaSha256, 128),
     source: value.source === 'imported' ? 'imported' : 'local',
-    attribution: sanitizeAttribution(value.attribution),
+    attribution: sanitizeRuleAttribution(value.attribution),
     createdAt: isTimestamp(value.createdAt) ? value.createdAt : now,
     updatedAt: isTimestamp(value.updatedAt) ? value.updatedAt : now,
     revision,
