@@ -15,6 +15,7 @@ _Last updated: 2026-11-23_
 | [yaml](https://eemeli.org/yaml/) | 2.9.1 | ISC | YAML parsing for validation and formatting |
 | [ajv](https://ajv.js.org/) | 8.20.0 | MIT | JSON Schema validation for Sigma rules |
 | [ajv-formats](https://github.com/ajv-validator/ajv-formats) | 3.0.1 | MIT | UUID and other format checks for Ajv |
+| [@virustotal/yara-x](https://github.com/VirusTotal/yara-x) | 1.23.0 | BSD-3-Clause | YARA rule compilation and scanning in a Web Worker |
 
 Lucide includes icons derived from the Feather project under the MIT licence. Inter and JetBrains Mono are licensed under the SIL Open Font License 1.1; the font files are bundled as WOFF2 subsets and are not sold separately.
 
@@ -37,7 +38,7 @@ These were used to gather Phase 0 evidence. They are **not** current dependencie
 
 | Package | Version evaluated | Licence | Intended use |
 |---|---|---|---|
-| [@virustotal/yara-x](https://github.com/VirusTotal/yara-x) | 1.23.0 | BSD-3-Clause | YARA rule compilation and scanning (Phase 4) |
+| — | — | — | No evaluated packages are pending adoption. |
 
 ## Data and specifications
 

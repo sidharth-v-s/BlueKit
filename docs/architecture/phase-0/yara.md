@@ -1,6 +1,6 @@
 # YARA and YARA-X in the Browser
 
-**Status:** engine feasibility verified · not yet a dependency · 2026-11-20
+**Status:** adopted · `@virustotal/yara-x@1.23.0` · 2026-11-23
 
 ## Question
 
@@ -76,7 +76,8 @@ Do not silently drop unsupported constructs. A rule that validates in the editor
 - WASM memory growth limits vary by browser; large files and many rules need caps.
 - The engine's error messages may be terse; the UI must translate them without hiding the original text.
 - YARA-X and YARA are related but not identical. Rule compatibility claims must name the engine and version.
-- The package is not yet a dependency. Phase 4 must pin an exact version, record the integrity hash, and add the licence notice.
+- The package is pinned to `1.23.0` and covered by `THIRD_PARTY_NOTICES.md` and the Phase 4 YARA notes.
+- The engine timeout is best effort. A pathological regex can still occupy the worker; the worker-manager budget is the hard stop.
 
 ## Sources
 
