@@ -10,9 +10,11 @@
   import Play from 'lucide-svelte/icons/play';
   import ShieldCheck from 'lucide-svelte/icons/shield-check';
   import SlidersHorizontal from 'lucide-svelte/icons/sliders-horizontal';
+  import Tag from 'lucide-svelte/icons/tag';
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
   import Upload from 'lucide-svelte/icons/upload';
   import RuleLibraryPanel from '@/components/rules/RuleLibraryPanel.svelte';
+  import SigmaAttackTagPicker from '@/components/rules/SigmaAttackTagPicker.svelte';
   import SigmaConditionPanel from '@/components/rules/SigmaConditionPanel.svelte';
   import SigmaMetadataPanel from '@/components/rules/SigmaMetadataPanel.svelte';
   import { ui } from '@/app/ui.svelte';
@@ -77,6 +79,7 @@ tags:
   let testing = $state(false);
   let metadataOpen = $state(false);
   let conditionOpen = $state(false);
+  let attackOpen = $state(false);
   let formatting = $state(false);
 
   const byteLength = $derived(new TextEncoder().encode(rule).byteLength);
@@ -165,6 +168,12 @@ tags:
   }
 
   function applyCondition(text: string): void {
+    rule = text;
+    report = null;
+    error = null;
+  }
+
+  function applyTags(text: string): void {
     rule = text;
     report = null;
     error = null;
@@ -307,6 +316,14 @@ tags:
             onclick={() => (conditionOpen = !conditionOpen)}
           >
             <GitBranch size={12} strokeWidth={1.9} aria-hidden="true" /> Condition
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            aria-expanded={attackOpen}
+            onclick={() => (attackOpen = !attackOpen)}
+          >
+            <Tag size={12} strokeWidth={1.9} aria-hidden="true" /> ATT&amp;CK
           </button>
           <button
             type="button"
@@ -499,6 +516,14 @@ tags:
       {rule}
       onapply={applyCondition}
       onclose={() => (conditionOpen = false)}
+    />
+  {/if}
+
+  {#if attackOpen}
+    <SigmaAttackTagPicker
+      {rule}
+      onapply={applyTags}
+      onclose={() => (attackOpen = false)}
     />
   {/if}
 

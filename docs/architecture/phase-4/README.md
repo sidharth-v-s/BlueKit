@@ -22,6 +22,7 @@ detection works.
 | YAML formatting | Document-based reformat with a two-space indent; detection, key order, and comments are kept |
 | Metadata editor | Title, ID, status, description, references, author, date, modified, logsource, false positives, level, and tags |
 | Condition helper | Builds `detection.condition` from selection names, with all/any/of-them presets and AND/OR append |
+| ATT&CK tags | Versioned Enterprise ATT&CK snapshot with tactic chips, technique search, and apply |
 | Validate action | Button or `Ctrl`/`Cmd` + `Enter` |
 | YAML diagnostics | Parse failures reported with line and column |
 | Schema diagnostics | Ajv 2020 errors reported with JSON paths and keywords |
@@ -100,6 +101,27 @@ detection map, and invalid YAML. Selections and comments are left in place. The
 helper does not check that the condition only references existing selections;
 Validate and Run local test report problems after the fact. The same stale-write
 guard as the metadata editor applies.
+
+## ATT&CK tag picker
+
+The tag picker uses a vendored Enterprise ATT&CK snapshot. The current snapshot
+is ATT&CK v20.1, retrieved 2026-11-24, with 15 tactics and 706 active
+techniques. Provenance, the regeneration script, the licence, and the limits are
+documented in [ATT&CK tag data](attack-data.md).
+
+- Current tags are listed with a remove action.
+- Tactic chips toggle `attack.<tactic>` tags such as `attack.execution`.
+- Search matches technique ids, names, and tactic short names. A tactic filter
+  narrows the results, and the list is capped at 50 rows.
+- Adding a technique appends its `attack.t<id>` tag. Already-added tags are
+  disabled. Up to 100 tags are allowed per rule.
+- Apply writes the `tags` list through the YAML Document editor, preserving
+  other fields, detection, and comments. Empty tags remove the `tags` key.
+- The picker is blocked from applying when the editor changed after it loaded.
+
+The picker is metadata association, not coverage or detection-quality
+judgement. It does not fetch updates, include Mobile or ICS ATT&CK, or export an
+ATT&CK Navigator layer.
 
 ## Vendored schema
 
@@ -266,8 +288,10 @@ Ajv, `ajv-formats`, and the schema are loaded with a dynamic import the first
 time Rule Studio validates a rule. The catalog tool
 `detection.sigma-validator` uses the same dynamic import. The local evaluator is
 loaded on the first test run, and the `yaml` Document editor is loaded on the
-first format, metadata, or condition action. Neither the route's initial chunk
-nor the application's initial bundle includes the schema, evaluator, or editor.
+first format, metadata, condition, or tag action. The ATT&CK dataset is loaded
+only when the tag picker opens. Neither the route's initial chunk nor the
+application's initial bundle includes the schema, evaluator, editor, or ATT&CK
+snapshot.
 
 `src/core/rules/sigma-meta.ts` contains only the limits and attribution metadata
 needed for the initial UI, so the view can show the cap and schema fingerprint
@@ -294,10 +318,12 @@ library, collections, revisions, and diffs are not implemented yet.
   logsource. Only pasted sample events are evaluated.
 - It does not edit detection blocks or conditions through the metadata form.
   Those stay in the YAML editor, and formatting never changes their meaning.
-- It does not yet provide logsource/field reference helpers, an ATT&CK tag
-  picker, or a visual rule builder.
+- It does not yet provide logsource/field reference helpers or a visual rule
+  builder.
 - The condition helper writes text but does not validate selection references
   or condition syntax; Validate and Run local test do that.
+- The ATT&CK picker covers Enterprise only, does not update itself, and does not
+  export ATT&CK Navigator layers.
 - It does not import repository-wide rule packs in one operation or resolve
   Sigma includes.
 - It does not convert rules to backend query languages.
@@ -339,6 +365,14 @@ library, collections, revisions, and diffs are not implemented yet.
 - missing detection maps and invalid YAML;
 - all/any, of-them, and shared-prefix presets;
 - AND/OR append and compound-condition parenthesizing.
+
+`tests/unit/attack.test.ts` covers:
+
+- dataset version, provenance, checksum shape, unique ids, and tactic refs;
+- search ranking, name/id/tactic matching, tactic filters, and limits;
+- tag construction, description, tactic-id aliases, and unknown tags;
+- tag merging, trimming, the 100-tag cap, and removal;
+- defensive normalization of malformed tactics and techniques.
 
 `tests/unit/sigma-evaluator.test.ts` covers:
 
