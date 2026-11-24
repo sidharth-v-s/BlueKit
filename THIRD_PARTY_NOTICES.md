@@ -2,7 +2,7 @@
 
 BlueKit bundles and/or depends on the following third-party software. Each retains its own licence. This file is informational; the authoritative licence text ships with each package.
 
-_Last updated: 2026-11-23_
+_Last updated: 2026-11-24_
 
 ## Runtime dependencies
 
@@ -45,10 +45,43 @@ These were used to gather Phase 0 evidence. They are **not** current dependencie
 | Item | Licence / terms | Use |
 |---|---|---|
 | [SigmaHQ Sigma specification](https://github.com/SigmaHQ/sigma-specification) | Public domain (specification content) | `json-schema/sigma-detection-rule-schema.json`, commit `ba9251a`, retrieved 2026-11-21, SHA-256 `eb95ddb1…2d95` |
-| [MITRE ATT&CK](https://attack.mitre.org/) | MITRE terms; attribution required | Future dataset pack (Phase 8) |
+| [MITRE ATT&CK Enterprise](https://attack.mitre.org/) | MITRE ATT&CK licence (reproduced below) | `src/core/rules/attack-enterprise.json`, Enterprise v20.1, retrieved 2026-11-24, source SHA-256 `539a843a…10b5` |
 | [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | U.S. Government work; check terms | Future dataset pack (Phase 8) |
 
-No third-party datasets are currently bundled. Dataset entries must carry version, licence, checksum, and release timestamp before they are added.
+The ATT&CK dataset is a derived subset: active tactics and techniques, their
+tactic short names, and sub-technique markers. Revoked and deprecated
+techniques are omitted. Regenerate it with
+`node scripts/build-attack-data.mjs /path/to/enterprise-attack.json`.
+
+### MITRE ATT&CK licence
+
+The MITRE Corporation (MITRE) hereby grants you a non-exclusive, royalty-free
+license to use ATT&CK® for research, development, and commercial purposes. Any
+copy you make for such purposes is authorized provided that you reproduce
+MITRE's copyright designation and this license in any such copy.
+
+"© 2026 The MITRE Corporation. This work is reproduced and distributed with the
+permission of The MITRE Corporation."
+
+**Disclaimers**
+
+MITRE does not claim ATT&CK enumerates all possibilities for the types of
+actions and behaviors documented as part of its adversary model and framework
+of techniques. Using the information contained within ATT&CK to address or
+cover full categories of techniques will not guarantee full defensive coverage
+as there may be undisclosed techniques or variations on existing techniques not
+documented by ATT&CK.
+
+ALL DOCUMENTS AND THE INFORMATION CONTAINED THEREIN ARE PROVIDED ON AN "AS IS"
+BASIS AND THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS OR IS SPONSORED BY
+(IF ANY), THE MITRE CORPORATION, ITS BOARD OF TRUSTEES, OFFICERS, AGENTS, AND
+EMPLOYEES, DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION THEREIN WILL NOT
+INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR
+A PARTICULAR PURPOSE.
+
+Other third-party datasets must carry version, licence, checksum, and release
+timestamp before they are added.
 
 ## Provider APIs
 
