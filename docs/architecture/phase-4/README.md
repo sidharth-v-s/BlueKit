@@ -28,6 +28,7 @@ detection works.
 | Local test | Documented evaluator subset over one event or an array of events |
 | Test results | Per-event match state, matched selections, unsupported-feature failures |
 | Rule library | Local save/update/delete, search, stored revision snapshots with diffs and restore, and load back into the editor |
+| Collections and favourites | Named rule collections and a star list, both stored locally and included in archives |
 | Import/export | Single YAML rules and versioned `bluekit.rules` bundles with attribution |
 | YARA Studio | See [YARA Studio](yara.md): YARA-X compile validation, local multi-file scan, snippets, progress/cancel, export |
 
@@ -155,6 +156,24 @@ Revision history:
 - Revision snapshots are included in the archive. Archive schema version 2 adds
   the `ruleRevisions` store; version 1 archives remain readable.
 
+Collections and favourites:
+
+- A **collection** is a named list of local rule ids stored in
+  `ruleCollections`. Names are trimmed, limited to 120 characters, and unique
+  case-insensitively. The library allows 100 collections and 500 rules per
+  collection.
+- Select a collection chip to filter the library. **Add** and **Remove** on a
+  rule change membership of the selected collection.
+- **Favourites** is a flat rule-id list stored in the existing `favorites`
+  store under `ruleIds`, separate from tool favourites. The star on a rule
+  toggles it; the Favourites chip filters to starred rules.
+- Deleting a rule removes it from every collection and the favourite list.
+  Deleting a collection removes only the collection; its rules stay in the
+  library.
+- Collections and favourites are included in the archive. Imported collections
+  can reference rules that are not present locally; the view counts only rules
+  that exist, and missing ids are ignored rather than treated as errors.
+
 Importing:
 
 - A single `.yml` or `.yaml` file is validated for metadata and stored as an
@@ -183,7 +202,9 @@ Known limits:
 
 - Revision history stores content snapshots, not a full audit trail of every
   keystroke. Snapshots exist only for explicit saves made by this build.
-- Collections and favourites are not implemented yet.
+- Collections have a name but no description editor, ordering, nesting, or bulk
+  add. Membership is changed one rule at a time.
+- Favourites are a flat list, not a separate entity with notes or ordering.
 - Imported bundle records are not validated against the schema at import time;
   validation happens when a rule is saved from the editor or checked manually.
 
@@ -218,7 +239,6 @@ library, collections, revisions, and diffs are not implemented yet.
 
 - It does not replay production telemetry, schedule tests, or route events by
   logsource. Only pasted sample events are evaluated.
-- It does not yet support Sigma collections or favourites.
 - It does not import repository-wide rule packs in one operation or resolve
   Sigma includes.
 - It does not convert rules to backend query languages.
@@ -270,6 +290,15 @@ library, collections, revisions, and diffs are not implemented yet.
 - restore creating a new working revision with old content and metadata;
 - unified diffs between a snapshot and the current content;
 - no-difference diffs and cross-rule rejection.
+
+`tests/unit/rule-collections.test.ts` covers:
+
+- collection creation, name normalization, duplicate rejection, and sorting;
+- malformed persisted collections being ignored;
+- idempotent add/remove and the per-collection rule cap;
+- rename, delete, and removing a deleted rule from every collection;
+- favourite round-trips, toggling, malformed entries, and separation from the
+  tool favourites key.
 
 `tests/unit/yara.test.ts`, `tests/unit/yara-job.test.ts`, and
 `tests/unit/yara-engine.test.ts` cover the YARA source/file caps, import notes,

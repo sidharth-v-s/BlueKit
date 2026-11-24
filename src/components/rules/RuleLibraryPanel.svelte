@@ -2,9 +2,12 @@
   import { onMount } from 'svelte';
   import Download from 'lucide-svelte/icons/download';
   import FileText from 'lucide-svelte/icons/file-text';
+  import Folder from 'lucide-svelte/icons/folder';
+  import FolderPlus from 'lucide-svelte/icons/folder-plus';
   import HardDrive from 'lucide-svelte/icons/hard-drive';
   import History from 'lucide-svelte/icons/history';
   import Search from 'lucide-svelte/icons/search';
+  import Star from 'lucide-svelte/icons/star';
   import Trash2 from 'lucide-svelte/icons/trash-2';
   import Upload from 'lucide-svelte/icons/upload';
   import ConfirmDialog from '@/components/ConfirmDialog.svelte';
@@ -12,6 +15,21 @@
   import { session } from '@/core/app/session.svelte';
   import { downloadText, fileStamp } from '@/core/export-import/download';
   import { formatBytes } from '@/core/runtime/errors';
+  import {
+    addRuleToCollection,
+    assertCollectionName,
+    createRuleCollection,
+    deleteRuleCollection,
+    MAX_COLLECTION_NAME,
+    readRuleCollections,
+    readRuleFavorites,
+    removeRuleFromCollection,
+    removeRuleFromCollections,
+    saveRuleCollection,
+    toggleRuleFavorite,
+    writeRuleFavorites,
+    type RuleCollection,
+  } from '@/core/rules/collections';
   import {
     buildRuleRecord,
     deleteRuleRecord,
@@ -65,13 +83,46 @@
   let historyError = $state<string | null>(null);
   let historyDiff = $state<RuleRevisionDiff | null>(null);
   let pendingRestore = $state<RuleRevision | null>(null);
+  let collections = $state<RuleCollection[]>([]);
+  let favoriteIds = $state<string[]>([]);
+  let activeCollectionId = $state<string | null>(null);
+  let creatingCollection = $state(false);
+  let newCollectionName = $state('');
+  let pendingDeleteCollection = $state<RuleCollection | null>(null);
+  let collectionBusy = $state(false);
+
+  const FAVORITES_FILTER = 'favorites';
 
   const persistenceEnabled = $derived(session.persistenceEnabled);
 
+  const activeCollection = $derived(
+    activeCollectionId && activeCollectionId !== FAVORITES_FILTER
+      ? (collections.find((collection) => collection.id === activeCollectionId) ?? null)
+      : null,
+  );
+
+  const favoriteCount = $derived(
+    favoriteIds.filter((id) => records.some((record) => record.id === id)).length,
+  );
+
+  function collectionCount(collection: RuleCollection): number {
+    return collection.ruleIds.filter((id) => records.some((record) => record.id === id)).length;
+  }
+
   const filtered = $derived.by(() => {
+    let list = records;
+
+    if (activeCollectionId === FAVORITES_FILTER) {
+      const favorites = new Set(favoriteIds);
+      list = list.filter((record) => favorites.has(record.id));
+    } else if (activeCollection) {
+      const members = new Set(activeCollection.ruleIds);
+      list = list.filter((record) => members.has(record.id));
+    }
+
     const needle = query.trim().toLowerCase();
-    if (needle.length === 0) return records;
-    return records.filter((record) =>
+    if (needle.length === 0) return list;
+    return list.filter((record) =>
       [
         record.title,
         record.sigmaId,
@@ -98,7 +149,21 @@
       return;
     }
     try {
-      records = await readRuleRecords(session.adapter);
+      const [nextRecords, nextCollections, nextFavorites] = await Promise.all([
+        readRuleRecords(session.adapter),
+        readRuleCollections(session.adapter),
+        readRuleFavorites(session.adapter),
+      ]);
+      records = nextRecords;
+      collections = nextCollections;
+      favoriteIds = nextFavorites;
+      if (
+        activeCollectionId &&
+        activeCollectionId !== FAVORITES_FILTER &&
+        !nextCollections.some((collection) => collection.id === activeCollectionId)
+      ) {
+        activeCollectionId = null;
+      }
       error = null;
     } catch (caught) {
       error = caught instanceof Error ? caught.message : String(caught);
@@ -257,12 +322,89 @@
     if (!record || !session.adapter) return;
     try {
       await deleteRuleRevisions(session.adapter, record.id);
+      await removeRuleFromCollections(session.adapter, record.id);
+      if (favoriteIds.includes(record.id)) {
+        await writeRuleFavorites(
+          session.adapter,
+          favoriteIds.filter((id) => id !== record.id),
+        );
+      }
       await deleteRuleRecord(session.adapter, record.id);
       await session.refreshStorage();
       await refresh();
       if (historyRecord?.id === record.id) closeHistory();
       ondelete(record.id);
       ui.toast(`Deleted "${record.title ?? 'Untitled rule'}".`, 'info');
+    } catch (caught) {
+      ui.toast(describeError(caught), 'danger');
+    }
+  }
+
+  function isFavorite(id: string): boolean {
+    return favoriteIds.includes(id);
+  }
+
+  async function toggleFavorite(record: RuleRecord): Promise<void> {
+    if (!session.adapter) {
+      ui.toast('Local storage is not available.', 'warning');
+      return;
+    }
+    try {
+      const next = toggleRuleFavorite(favoriteIds, record.id);
+      await writeRuleFavorites(session.adapter, next);
+      favoriteIds = next;
+    } catch (caught) {
+      ui.toast(describeError(caught), 'danger');
+    }
+  }
+
+  async function createCollection(): Promise<void> {
+    if (!session.adapter || collectionBusy) return;
+    collectionBusy = true;
+    try {
+      const name = assertCollectionName(collections, newCollectionName);
+      const collection = createRuleCollection(name);
+      await saveRuleCollection(session.adapter, collection);
+      await refresh();
+      activeCollectionId = collection.id;
+      creatingCollection = false;
+      newCollectionName = '';
+      ui.toast(`Created "${collection.name}".`, 'success');
+    } catch (caught) {
+      ui.toast(describeError(caught), 'danger');
+    } finally {
+      collectionBusy = false;
+    }
+  }
+
+  function cancelNewCollection(): void {
+    creatingCollection = false;
+    newCollectionName = '';
+  }
+
+  async function toggleMembership(record: RuleRecord): Promise<void> {
+    if (!session.adapter || !activeCollection) return;
+    try {
+      const isMember = activeCollection.ruleIds.includes(record.id);
+      const next = isMember
+        ? removeRuleFromCollection(activeCollection, record.id)
+        : addRuleToCollection(activeCollection, record.id);
+      await saveRuleCollection(session.adapter, next);
+      await refresh();
+    } catch (caught) {
+      ui.toast(describeError(caught), 'danger');
+    }
+  }
+
+  async function confirmDeleteCollection(): Promise<void> {
+    const collection = pendingDeleteCollection;
+    pendingDeleteCollection = null;
+    if (!collection || !session.adapter) return;
+    try {
+      await deleteRuleCollection(session.adapter, collection.id);
+      if (activeCollectionId === collection.id) activeCollectionId = null;
+      await refresh();
+      ui.toast(`Deleted collection "${collection.name}".`, 'info');
     } catch (caught) {
       ui.toast(describeError(caught), 'danger');
     }
@@ -388,6 +530,93 @@
         </span>
       {/if}
     </div>
+
+    <div class="collection-bar" role="group" aria-label="Rule collections">
+      <button
+        type="button"
+        class="chip"
+        class:active={activeCollectionId === null}
+        onclick={() => (activeCollectionId = null)}
+      >
+        All <span class="chip-count">{records.length}</span>
+      </button>
+      <button
+        type="button"
+        class="chip"
+        class:active={activeCollectionId === FAVORITES_FILTER}
+        onclick={() => (activeCollectionId = FAVORITES_FILTER)}
+      >
+        <Star
+          size={11}
+          strokeWidth={2}
+          fill={activeCollectionId === FAVORITES_FILTER ? 'currentColor' : 'none'}
+          aria-hidden="true"
+        />
+        Favourites <span class="chip-count">{favoriteCount}</span>
+      </button>
+      {#each collections as collection (collection.id)}
+        <button
+          type="button"
+          class="chip"
+          class:active={activeCollectionId === collection.id}
+          onclick={() => (activeCollectionId = collection.id)}
+        >
+          <Folder size={11} strokeWidth={1.9} aria-hidden="true" />
+          <span class="chip-label">{collection.name}</span>
+          <span class="chip-count">{collectionCount(collection)}</span>
+        </button>
+      {/each}
+      {#if creatingCollection}
+        <form
+          class="new-collection"
+          onsubmit={(event) => {
+            event.preventDefault();
+            void createCollection();
+          }}
+        >
+          <input
+            class="collection-input"
+            type="text"
+            bind:value={newCollectionName}
+            maxlength={MAX_COLLECTION_NAME}
+            placeholder="Collection name"
+            aria-label="New collection name"
+          />
+          <button
+            type="submit"
+            class="mini"
+            disabled={collectionBusy || newCollectionName.trim().length === 0}
+          >
+            Create
+          </button>
+          <button type="button" class="mini" onclick={cancelNewCollection}>Cancel</button>
+        </form>
+      {:else}
+        <button type="button" class="chip chip-add" onclick={() => (creatingCollection = true)}>
+          <FolderPlus size={11} strokeWidth={1.9} aria-hidden="true" /> New collection
+        </button>
+      {/if}
+    </div>
+
+    {#if activeCollection}
+      <div class="collection-head">
+        <span class="collection-name">
+          <Folder size={12} strokeWidth={1.9} aria-hidden="true" /> {activeCollection.name}
+        </span>
+        <span class="faint">
+          {collectionCount(activeCollection)} rule{collectionCount(activeCollection) === 1 ? '' : 's'}
+        </span>
+        <span class="faint">Use Add or Remove on a rule to change membership.</span>
+        <button
+          type="button"
+          class="mini danger collection-delete"
+          title="Delete this collection"
+          onclick={() => (pendingDeleteCollection = activeCollection)}
+        >
+          <Trash2 size={11} aria-hidden="true" /> Delete
+        </button>
+      </div>
+    {/if}
 
     {#if historyRecord}
       <div class="history">
@@ -522,7 +751,33 @@
               {/if}
             </div>
             <div class="rule-actions">
+              <button
+                type="button"
+                class="mini star"
+                class:on={isFavorite(record.id)}
+                aria-pressed={isFavorite(record.id)}
+                aria-label={isFavorite(record.id) ? 'Remove from favourites' : 'Add to favourites'}
+                title={isFavorite(record.id) ? 'Remove from favourites' : 'Add to favourites'}
+                onclick={() => void toggleFavorite(record)}
+              >
+                <Star
+                  size={12}
+                  strokeWidth={1.9}
+                  fill={isFavorite(record.id) ? 'currentColor' : 'none'}
+                  aria-hidden="true"
+                />
+              </button>
               <button type="button" class="mini" onclick={() => load(record)}>Load</button>
+              {#if activeCollection}
+                <button
+                  type="button"
+                  class="mini"
+                  title={`${activeCollection.ruleIds.includes(record.id) ? 'Remove from' : 'Add to'} ${activeCollection.name}`}
+                  onclick={() => void toggleMembership(record)}
+                >
+                  {activeCollection.ruleIds.includes(record.id) ? 'Remove' : 'Add'}
+                </button>
+              {/if}
               <button
                 type="button"
                 class="mini"
@@ -571,6 +826,20 @@
   confirmLabel="Restore revision"
   onconfirm={() => void confirmRestore()}
   oncancel={() => (pendingRestore = null)}
+/>
+
+<ConfirmDialog
+  open={pendingDeleteCollection !== null}
+  title="Delete collection?"
+  message={pendingDeleteCollection
+    ? `Deleting "${pendingDeleteCollection.name}" removes only the collection. Its ${
+        pendingDeleteCollection.ruleIds.length
+      } rule${pendingDeleteCollection.ruleIds.length === 1 ? '' : 's'} stay in the library.`
+    : ''}
+  confirmLabel="Delete collection"
+  danger
+  onconfirm={() => void confirmDeleteCollection()}
+  oncancel={() => (pendingDeleteCollection = null)}
 />
 
 <style>
@@ -634,6 +903,96 @@
   .count {
     white-space: nowrap;
     font-size: 10.5px;
+  }
+
+  .collection-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 8px;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 10.5px;
+    cursor: pointer;
+  }
+
+  .chip:hover {
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .chip.active {
+    border-color: var(--accent-line);
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+
+  .chip-count {
+    color: var(--muted-2);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+  }
+
+  .chip-label {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chip-add {
+    border-style: dashed;
+  }
+
+  .new-collection {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .collection-input {
+    width: 160px;
+    height: 24px;
+    padding: 0 7px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    outline: 0;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 11px;
+  }
+
+  .collection-input:focus {
+    border-color: var(--accent-line);
+  }
+
+  .collection-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 6px 8px;
+    border: 1px solid var(--accent-line);
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    font-size: 11px;
+  }
+
+  .collection-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
   }
 
   .history {
@@ -845,6 +1204,27 @@
   .mini.danger:hover {
     border-color: rgba(224, 108, 108, 0.34);
     color: #f0a3a3;
+  }
+
+  .mini.star {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 23px;
+    padding: 0;
+  }
+
+  .mini.star.on {
+    border-color: rgba(216, 166, 87, 0.4);
+    background: var(--warning-soft);
+    color: var(--warning);
+  }
+
+  .mini.collection-delete {
+    width: auto;
+    margin-left: auto;
+    padding: 0 7px;
+    gap: 4px;
   }
 
   .tag {

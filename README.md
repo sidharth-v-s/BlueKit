@@ -12,7 +12,7 @@ BlueKit is built for analysts who need a quick, honest answer without uploading 
 
 **Phase 3 delivers MailSleuth and the IOC workspace.** MailSleuth parses RFC 822/MIME messages, compares header identities, reads relay authentication claims, extracts and defangs URLs, and hashes attachments locally. Its route is `#/mailsleuth`; every email tool runs in a worker with no network access. The IOC workspace at `#/ioc` extracts indicators from text or normalizes a one-per-line list, with type filters, value search, and explicit defanged/refanged copy actions.
 
-**Phase 4 begins with Sigma validation, local subset testing, a Sigma library, and YARA Studio.** Rule Studio at `#/rules` validates YAML syntax and the vendored official Sigma detection-rule schema, keeping the two failure layers separate. It runs a documented local test subset against pasted sample events, and stores rules locally with revision snapshots, diffs, restore, import/export, and attribution sidecars. YARA Studio at `#/yara` compiles rules with YARA-X 1.23.0 in a worker and scans local files with explicit limits, progress, and cancellation. The schema, Ajv validator, Sigma evaluator, and YARA WASM engine are lazy-loaded, and unsupported constructs fail visibly instead of passing silently. Local test results are authoring feedback, not detection verification.
+**Phase 4 begins with Sigma validation, local subset testing, a Sigma library, and YARA Studio.** Rule Studio at `#/rules` validates YAML syntax and the vendored official Sigma detection-rule schema, keeping the two failure layers separate. It runs a documented local test subset against pasted sample events, and stores rules locally with revision snapshots, diffs, restore, collections, favourites, import/export, and attribution sidecars. YARA Studio at `#/yara` compiles rules with YARA-X 1.23.0 in a worker and scans local files with explicit limits, progress, and cancellation. The schema, Ajv validator, Sigma evaluator, and YARA WASM engine are lazy-loaded, and unsupported constructs fail visibly instead of passing silently. Local test results are authoring feedback, not detection verification.
 
 Shipped tools:
 
@@ -47,7 +47,7 @@ Shipped tools:
 | Authentication Results | available | SPF/DKIM/DMARC/ARC relay claims with attribution and caveats |
 | Email URL Extractor | available | Text and HTML URLs; original, normalised, defanged; never fetched |
 | Attachment Extractor | available | SHA-1/SHA-256, magic bytes, risk flags, explicit download |
-| Sigma Rule Validator | available | YAML + vendored official Sigma schema; separate diagnostics; lazy-loaded. Rule Studio adds local subset testing, a local library, stored revisions with diffs/restore |
+| Sigma Rule Validator | available | YAML + vendored official Sigma schema; separate diagnostics; lazy-loaded. Rule Studio adds local subset testing, a local library, stored revisions with diffs/restore, collections, and favourites |
 | YARA Studio | available | YARA-X 1.23.0 WASM in a worker; compile validation, local multi-file scan, progress/cancel, bounded matches; lazy-loaded |
 | EVTX Header Probe | prototype | Container/file headers only; no BinXML record decoding |
 
