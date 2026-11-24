@@ -4,6 +4,7 @@
   import AlignLeft from 'lucide-svelte/icons/align-left';
   import Eraser from 'lucide-svelte/icons/eraser';
   import FileText from 'lucide-svelte/icons/file-text';
+  import GitBranch from 'lucide-svelte/icons/git-branch';
   import Info from 'lucide-svelte/icons/info';
   import LoaderCircle from 'lucide-svelte/icons/loader-circle';
   import Play from 'lucide-svelte/icons/play';
@@ -12,6 +13,7 @@
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
   import Upload from 'lucide-svelte/icons/upload';
   import RuleLibraryPanel from '@/components/rules/RuleLibraryPanel.svelte';
+  import SigmaConditionPanel from '@/components/rules/SigmaConditionPanel.svelte';
   import SigmaMetadataPanel from '@/components/rules/SigmaMetadataPanel.svelte';
   import { ui } from '@/app/ui.svelte';
   import { SIGMA_MAX_INPUT_BYTES, SIGMA_SCHEMA_SOURCE } from '@/core/rules/sigma-meta';
@@ -74,6 +76,7 @@ tags:
   let testError = $state<string | null>(null);
   let testing = $state(false);
   let metadataOpen = $state(false);
+  let conditionOpen = $state(false);
   let formatting = $state(false);
 
   const byteLength = $derived(new TextEncoder().encode(rule).byteLength);
@@ -156,6 +159,12 @@ tags:
   }
 
   function applyMetadata(text: string): void {
+    rule = text;
+    report = null;
+    error = null;
+  }
+
+  function applyCondition(text: string): void {
     rule = text;
     report = null;
     error = null;
@@ -290,6 +299,14 @@ tags:
             onclick={() => (metadataOpen = !metadataOpen)}
           >
             <SlidersHorizontal size={12} strokeWidth={1.9} aria-hidden="true" /> Metadata
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            aria-expanded={conditionOpen}
+            onclick={() => (conditionOpen = !conditionOpen)}
+          >
+            <GitBranch size={12} strokeWidth={1.9} aria-hidden="true" /> Condition
           </button>
           <button
             type="button"
@@ -474,6 +491,14 @@ tags:
       {rule}
       onapply={applyMetadata}
       onclose={() => (metadataOpen = false)}
+    />
+  {/if}
+
+  {#if conditionOpen}
+    <SigmaConditionPanel
+      {rule}
+      onapply={applyCondition}
+      onclose={() => (conditionOpen = false)}
     />
   {/if}
 

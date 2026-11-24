@@ -21,6 +21,7 @@ detection works.
 | Rule editor | YAML text editor with open-file, example, and clear actions |
 | YAML formatting | Document-based reformat with a two-space indent; detection, key order, and comments are kept |
 | Metadata editor | Title, ID, status, description, references, author, date, modified, logsource, false positives, level, and tags |
+| Condition helper | Builds `detection.condition` from selection names, with all/any/of-them presets and AND/OR append |
 | Validate action | Button or `Ctrl`/`Cmd` + `Enter` |
 | YAML diagnostics | Parse failures reported with line and column |
 | Schema diagnostics | Ajv 2020 errors reported with JSON paths and keywords |
@@ -76,6 +77,29 @@ written one per line.
   per-item comments.
 - Both actions clear the validation report because the rule text changed. Run
   Validate again to check the result.
+
+## Condition helper
+
+The condition helper reads the `detection` map and lists its selection names,
+excluding `condition` and `timeframe`. It offers presets for common shapes:
+
+- all selections joined with `and`;
+- any selection joined with `or`;
+- `1 of them` and `all of them` when there is more than one selection;
+- `1 of <prefix>*` and `all of <prefix>*` when the names share a usable prefix,
+  such as `selection_image` and `selection_command`.
+
+Selection chips append one name at a time with the chosen AND/OR joiner. A
+compound condition is parenthesized first, so appending `and filter` to
+`selection_a or selection_b` produces `(selection_a or selection_b) and filter`
+instead of changing how the existing expression binds.
+
+Apply re-parses the current rule and writes only `detection.condition`. It
+rejects an empty condition, a condition over 10,000 characters, a missing
+detection map, and invalid YAML. Selections and comments are left in place. The
+helper does not check that the condition only references existing selections;
+Validate and Run local test report problems after the fact. The same stale-write
+guard as the metadata editor applies.
 
 ## Vendored schema
 
@@ -242,8 +266,8 @@ Ajv, `ajv-formats`, and the schema are loaded with a dynamic import the first
 time Rule Studio validates a rule. The catalog tool
 `detection.sigma-validator` uses the same dynamic import. The local evaluator is
 loaded on the first test run, and the `yaml` Document editor is loaded on the
-first format or metadata action. Neither the route's initial chunk nor the
-application's initial bundle includes the schema, evaluator, or editor.
+first format, metadata, or condition action. Neither the route's initial chunk
+nor the application's initial bundle includes the schema, evaluator, or editor.
 
 `src/core/rules/sigma-meta.ts` contains only the limits and attribution metadata
 needed for the initial UI, so the view can show the cap and schema fingerprint
@@ -270,8 +294,10 @@ library, collections, revisions, and diffs are not implemented yet.
   logsource. Only pasted sample events are evaluated.
 - It does not edit detection blocks or conditions through the metadata form.
   Those stay in the YAML editor, and formatting never changes their meaning.
-- It does not yet provide logsource/field reference helpers, a detection
-  condition helper, an ATT&CK tag picker, or a visual rule builder.
+- It does not yet provide logsource/field reference helpers, an ATT&CK tag
+  picker, or a visual rule builder.
+- The condition helper writes text but does not validate selection references
+  or condition syntax; Validate and Run local test do that.
 - It does not import repository-wide rule packs in one operation or resolve
   Sigma includes.
 - It does not convert rules to backend query languages.
@@ -304,6 +330,15 @@ library, collections, revisions, and diffs are not implemented yet.
 - metadata writes that preserve detection, unknown keys, and comments;
 - field removal, nested logsource updates, list trimming, and no-op detection;
 - leading, trailing, and list-field comment preservation.
+
+`tests/unit/sigma-condition.test.ts` covers:
+
+- condition and selection reads, including `timeframe` exclusion;
+- condition writes that preserve selections and comments;
+- missing condition creation, no-op detection, empty and over-long rejection;
+- missing detection maps and invalid YAML;
+- all/any, of-them, and shared-prefix presets;
+- AND/OR append and compound-condition parenthesizing.
 
 `tests/unit/sigma-evaluator.test.ts` covers:
 
