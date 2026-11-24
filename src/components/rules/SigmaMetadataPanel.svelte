@@ -82,6 +82,10 @@
       loadedSnapshot = rule;
     } catch (caught) {
       error = caught instanceof Error ? caught.message : String(caught);
+      draft = blankDraft();
+      referencesText = '';
+      falsePositivesText = '';
+      tagsText = '';
       loadedSnapshot = null;
     } finally {
       busy = false;
