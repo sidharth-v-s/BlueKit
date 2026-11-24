@@ -45,6 +45,7 @@ These were used to gather Phase 0 evidence. They are **not** current dependencie
 | Item | Licence / terms | Use |
 |---|---|---|
 | [SigmaHQ Sigma specification](https://github.com/SigmaHQ/sigma-specification) | Public domain (specification content) | `json-schema/sigma-detection-rule-schema.json`, commit `ba9251a`, retrieved 2026-11-21, SHA-256 `eb95ddb1…2d95` |
+| [SigmaHQ Sigma specification appendices](https://github.com/SigmaHQ/sigma-specification) | Public domain (specification content) | `src/core/rules/sigma-reference.json`, specification 2.1.0 (2025-08-02), retrieved 2026-11-24, taxonomy SHA-256 `e072d8be…7aaa`, modifiers SHA-256 `7ea44004…9c6a` |
 | [MITRE ATT&CK Enterprise](https://attack.mitre.org/) | MITRE ATT&CK licence (reproduced below) | `src/core/rules/attack-enterprise.json`, Enterprise v20.1, retrieved 2026-11-24, source SHA-256 `539a843a…10b5` |
 | [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | U.S. Government work; check terms | Future dataset pack (Phase 8) |
 
@@ -52,6 +53,12 @@ The ATT&CK dataset is a derived subset: active tactics and techniques, their
 tactic short names, and sub-technique markers. Revoked and deprecated
 techniques are omitted. Regenerate it with
 `node scripts/build-attack-data.mjs /path/to/enterprise-attack.json`.
+
+The Sigma reference dataset is a derived subset of the public-domain
+specification appendices: logsource rows, taxonomy field lists, and modifier
+names with their descriptions. It contains no third-party rule content.
+Regenerate it with
+`node scripts/build-sigma-reference.mjs /path/to/sigma-appendix-taxonomy.md /path/to/sigma-appendix-modifiers.md`.
 
 ### MITRE ATT&CK licence
 

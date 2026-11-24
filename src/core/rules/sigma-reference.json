@@ -1,0 +1,2050 @@
+{
+  "schemaVersion": 1,
+  "specVersion": "2.1.0",
+  "released": "2025-08-02",
+  "retrieved": "2026-11-24",
+  "source": "https://github.com/SigmaHQ/sigma-specification",
+  "sourcePath": "specification/sigma-appendix-taxonomy.md",
+  "sourceSha256": "e072d8be52883261ec0b576f650fb9f197970f8ab6dc56eab7800791e67e7aaa",
+  "modifiersPath": "specification/sigma-appendix-modifiers.md",
+  "modifiersSha256": "7ea44004dd65899d3d0d65658311bfc8736c1df68b42029d70a3a209a4a79c6a",
+  "license": "Public domain; see THIRD_PARTY_NOTICES.md",
+  "logSources": [
+    {
+      "product": "",
+      "category": "",
+      "service": "apache",
+      "description": "Application error.log"
+    },
+    {
+      "product": "aws",
+      "category": "",
+      "service": "cloudtrail",
+      "description": ""
+    },
+    {
+      "product": "azure",
+      "category": "",
+      "service": "activitylogs",
+      "description": ""
+    },
+    {
+      "product": "azure",
+      "category": "",
+      "service": "auditlogs",
+      "description": ""
+    },
+    {
+      "product": "azure",
+      "category": "",
+      "service": "pim",
+      "description": ""
+    },
+    {
+      "product": "azure",
+      "category": "",
+      "service": "riskdetection",
+      "description": ""
+    },
+    {
+      "product": "azure",
+      "category": "",
+      "service": "signinlogs",
+      "description": ""
+    },
+    {
+      "product": "bitbucket",
+      "category": "",
+      "service": "audit",
+      "description": ""
+    },
+    {
+      "product": "cisco",
+      "category": "",
+      "service": "aaa",
+      "description": ""
+    },
+    {
+      "product": "cisco",
+      "category": "",
+      "service": "bgp",
+      "description": ""
+    },
+    {
+      "product": "cisco",
+      "category": "",
+      "service": "duo",
+      "description": ""
+    },
+    {
+      "product": "cisco",
+      "category": "",
+      "service": "ldp",
+      "description": ""
+    },
+    {
+      "product": "gcp",
+      "category": "",
+      "service": "gcp.audit",
+      "description": ""
+    },
+    {
+      "product": "gcp",
+      "category": "",
+      "service": "google_workspace.admin",
+      "description": ""
+    },
+    {
+      "product": "github",
+      "category": "",
+      "service": "audit",
+      "description": "organization Audit log"
+    },
+    {
+      "product": "huawei",
+      "category": "",
+      "service": "ldp",
+      "description": ""
+    },
+    {
+      "product": "juniper",
+      "category": "",
+      "service": "ldp",
+      "description": ""
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "auditd",
+      "description": "auditd.log"
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "auth",
+      "description": "auth.log"
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "clamav",
+      "description": ""
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "cron",
+      "description": ""
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "guacamole",
+      "description": ""
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "sshd",
+      "description": ""
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "sudo",
+      "description": ""
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "syslog",
+      "description": ""
+    },
+    {
+      "product": "linux",
+      "category": "",
+      "service": "vsftpd",
+      "description": ""
+    },
+    {
+      "product": "m365",
+      "category": "",
+      "service": "audit",
+      "description": ""
+    },
+    {
+      "product": "m365",
+      "category": "",
+      "service": "exchange",
+      "description": ""
+    },
+    {
+      "product": "m365",
+      "category": "",
+      "service": "threat_detection",
+      "description": ""
+    },
+    {
+      "product": "m365",
+      "category": "",
+      "service": "threat_management",
+      "description": ""
+    },
+    {
+      "product": "modsecurity",
+      "category": "",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "okta",
+      "category": "",
+      "service": "okta",
+      "description": ""
+    },
+    {
+      "product": "onelogin",
+      "category": "",
+      "service": "onelogin.events",
+      "description": ""
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "application",
+      "description": "Channel: Application"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "application-experience",
+      "description": "Channel:\n- Microsoft-Windows-Application-Experience/Program-Telemetry\n- Microsoft-Windows-Application-Experience/Program-Compatibility-Assistant"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "applocker",
+      "description": "Channel:\n- Microsoft-Windows-AppLocker/MSI and Script\n- Microsoft-Windows-AppLocker/EXE and DLL\n- Microsoft-Windows-AppLocker/Packaged app-Deployment\n- Microsoft-Windows-AppLocker/Packaged app-Execution"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "appmodel-runtime",
+      "description": "Channel: Microsoft-Windows-AppModel-Runtime/Admin"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "appxdeployment-server",
+      "description": "Channel: Microsoft-Windows-AppXDeploymentServer/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "appxpackaging-om",
+      "description": "Channel: Microsoft-Windows-AppxPackaging/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "bitlocker",
+      "description": "Channel: Microsoft-Windows-BitLocker/BitLocker Management"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "bits-client",
+      "description": "Channel: Microsoft-Windows-Bits-Client/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "capi2",
+      "description": "Channel: Microsoft-Windows-CAPI2/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "certificateservicesclient-lifecycle-system",
+      "description": "Channel: Microsoft-Windows-CertificateServicesClient-Lifecycle-System/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "codeintegrity-operational",
+      "description": "Channel: Microsoft-Windows-CodeIntegrity/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "dhcp",
+      "description": "Channel: Microsoft-Windows-DHCP-Server/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "diagnosis-scripted",
+      "description": "Channel: Microsoft-Windows-Diagnosis-Scripted/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "dns-client",
+      "description": "Channel: Microsoft-Windows-DNS Client Events/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "dns-server",
+      "description": "Channel: DNS Server"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "dns-server-analytic",
+      "description": "Channel: Microsoft-Windows-DNS-Server/Analytical"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "dns-server-audit",
+      "description": "Channel: Microsoft-Windows-DNS-Server/Audit"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "driver-framework",
+      "description": "Channel: Microsoft-Windows-DriverFrameworks-UserMode/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "firewall-as",
+      "description": "Channel: Microsoft-Windows-Windows Firewall With Advanced Security/Firewall"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "hyper-v-worker",
+      "description": "Channel: Microsoft-Windows-Hyper-V-Worker"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "iis-configuration",
+      "description": "Channel: Microsoft-IIS-Configuration/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "kernel-event-tracing",
+      "description": "Channel: Microsoft-Windows-Kernel-EventTracing"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "kernel-shimengine",
+      "description": "Channel:\n- Microsoft-Windows-Kernel-ShimEngine/Operational\n- WinEventLog:Microsoft-Windows-Kernel-ShimEngine/Diagnostic"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "ldap",
+      "description": "Channel: Microsoft-Windows-LDAP-Client/Debug"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "lsa-server",
+      "description": "Channel: Microsoft-Windows-LSA/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "msexchange-management",
+      "description": "Channel: MSExchange Management"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "ntfs",
+      "description": "Channel: Microsoft-Windows-Ntfs/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "ntlm",
+      "description": "Channel: Microsoft-Windows-NTLM/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "openssh",
+      "description": "Channel: OpenSSH/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "powershell",
+      "description": "Channel: Microsoft-Windows-PowerShell/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "powershell-classic",
+      "description": "Channel: Windows PowerShell"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "printservice-admin",
+      "description": "Channel: Microsoft-Windows-PrintService/Admin"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "printservice-operational",
+      "description": "Channel: Microsoft-Windows-PrintService/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "security",
+      "description": "Channel: Security"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "security-mitigations",
+      "description": "Channel:\n- Microsoft-Windows-Security-Mitigations/Kernel Mode\n- Microsoft-Windows-Security-Mitigations/User Mode"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "sense",
+      "description": "Channel: Microsoft-Windows-SENSE/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "servicebus-client",
+      "description": "Channel:\n- Microsoft-ServiceBus-Client/Operational\n- Microsoft-ServiceBus-Client/Admin"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "shell-core",
+      "description": "Channel: Microsoft-Windows-Shell-Core/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "smbclient-security",
+      "description": "Channel: Microsoft-Windows-SmbClient/Security"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "sysmon",
+      "description": "Channel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "system",
+      "description": "Channel: System"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "taskscheduler",
+      "description": "Channel: Microsoft-Windows-TaskScheduler/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "terminalservices-localsessionmanager",
+      "description": "Channel: Microsoft-Windows-TerminalServices-LocalSessionManager/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "vhdmp",
+      "description": "Channel: Microsoft-Windows-VHDMP/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "windefend",
+      "description": "Channel: Microsoft-Windows-Windows Defender/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "",
+      "service": "wmi",
+      "description": "Channel: Microsoft-Windows-WMI-Activity/Operational"
+    },
+    {
+      "product": "zeek",
+      "category": "",
+      "service": "dce_rpc",
+      "description": ""
+    },
+    {
+      "product": "zeek",
+      "category": "",
+      "service": "dns",
+      "description": ""
+    },
+    {
+      "product": "zeek",
+      "category": "",
+      "service": "http",
+      "description": ""
+    },
+    {
+      "product": "zeek",
+      "category": "",
+      "service": "kerberos",
+      "description": ""
+    },
+    {
+      "product": "zeek",
+      "category": "",
+      "service": "rdp",
+      "description": ""
+    },
+    {
+      "product": "zeek",
+      "category": "",
+      "service": "smb_files",
+      "description": ""
+    },
+    {
+      "product": "zeek",
+      "category": "",
+      "service": "x509",
+      "description": ""
+    },
+    {
+      "product": "",
+      "category": "antivirus",
+      "service": "",
+      "description": "antivirus detection message (format depends on the editor)"
+    },
+    {
+      "product": "django",
+      "category": "application",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "python",
+      "category": "application",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "rpc_firewall",
+      "category": "application",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "ruby_on_rails",
+      "category": "application",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "spring",
+      "category": "application",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "sql",
+      "category": "application",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "windows",
+      "category": "clipboard_capture",
+      "service": "",
+      "description": "EventID: 24\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "create_remote_thread",
+      "service": "",
+      "description": "EventID: 8\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "create_stream_hash",
+      "service": "",
+      "description": "EventID: 15\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "",
+      "category": "database",
+      "service": "",
+      "description": "sql queries log (drop, select,...)"
+    },
+    {
+      "product": "windows",
+      "category": "dns_query",
+      "service": "",
+      "description": "EventID: 22\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "",
+      "category": "dns",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "windows",
+      "category": "driver_load",
+      "service": "",
+      "description": "EventID: 6\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "file_access",
+      "service": "",
+      "description": "ETW Provider: Microsoft-Windows-Kernel-File"
+    },
+    {
+      "product": "windows",
+      "category": "file_block_executable",
+      "service": "",
+      "description": "EventID: 27\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "file_block_shredding",
+      "service": "",
+      "description": "EventID: 28\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "file_change",
+      "service": "",
+      "description": "EventID: 2\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "file_delete_detected",
+      "service": "",
+      "description": "EventID: 26\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "file_delete",
+      "service": "",
+      "description": "EventID: 23\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "linux",
+      "category": "file_event",
+      "service": "",
+      "description": "EventID: 11\nservice: sysmon"
+    },
+    {
+      "product": "macos",
+      "category": "file_event",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "windows",
+      "category": "file_event",
+      "service": "",
+      "description": "EventID: 11\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "file_executable_detected",
+      "service": "",
+      "description": "EventID: 29\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "file_rename",
+      "service": "",
+      "description": "ETW Provider: Microsoft-Windows-Kernel-File"
+    },
+    {
+      "product": "",
+      "category": "firewall",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "windows",
+      "category": "image_load",
+      "service": "",
+      "description": "EventID: 7\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "linux",
+      "category": "network_connection",
+      "service": "",
+      "description": "EventID: 3\nservice: sysmon"
+    },
+    {
+      "product": "windows",
+      "category": "network_connection",
+      "service": "",
+      "description": "EventID: 3\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "",
+      "category": "network",
+      "service": "connection",
+      "description": "networks connection in general"
+    },
+    {
+      "product": "",
+      "category": "network",
+      "service": "dns",
+      "description": "DNS queries in general"
+    },
+    {
+      "product": "windows",
+      "category": "pipe_created",
+      "service": "",
+      "description": "EventIDs:\n- 17\n- 18\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "process_access",
+      "service": "",
+      "description": "EventID: 10\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "linux",
+      "category": "process_creation",
+      "service": "",
+      "description": "EventID: 1\nservice: sysmon"
+    },
+    {
+      "product": "macos",
+      "category": "process_creation",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "windows",
+      "category": "process_creation",
+      "service": "",
+      "description": "EventID: 1\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "process_tampering",
+      "service": "",
+      "description": "EventID: 25\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "process_termination",
+      "service": "",
+      "description": "EventID: 5\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "",
+      "category": "proxy",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "windows",
+      "category": "ps_classic_provider_start",
+      "service": "",
+      "description": "EventID: 600\nChannel: Windows PowerShell"
+    },
+    {
+      "product": "windows",
+      "category": "ps_classic_script",
+      "service": "",
+      "description": "EventID: 800\nChannel: Windows PowerShell"
+    },
+    {
+      "product": "windows",
+      "category": "ps_classic_start",
+      "service": "",
+      "description": "EventID: 400\nChannel: Windows PowerShell"
+    },
+    {
+      "product": "windows",
+      "category": "ps_module",
+      "service": "",
+      "description": "EventID: 4103\nChannel:\n- Microsoft-Windows-PowerShell/Operational\n- PowerShellCore/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "ps_script",
+      "service": "",
+      "description": "EventID: 4104\nChannel:\n- Microsoft-Windows-PowerShell/Operational\n- PowerShellCore/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "raw_access_thread",
+      "service": "",
+      "description": "EventID: 9\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "registry_add",
+      "service": "",
+      "description": "EventID: 12\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "registry_delete",
+      "service": "",
+      "description": "EventID: 12\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "registry_event",
+      "service": "",
+      "description": "EventID:\n- 12\n- 13\n- 14\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "registry_rename",
+      "service": "",
+      "description": "EventID: 14\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "registry_set",
+      "service": "",
+      "description": "EventID: 13\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "sysmon_error",
+      "service": "",
+      "description": "EventID: 255\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "windows",
+      "category": "sysmon_status",
+      "service": "",
+      "description": "EventIDs:\n- 4\n- 16\nChannel: Microsoft-Windows-Sysmon/Operational"
+    },
+    {
+      "product": "",
+      "category": "webserver",
+      "service": "",
+      "description": ""
+    },
+    {
+      "product": "windows",
+      "category": "wmi_event",
+      "service": "",
+      "description": "EventIDs:\n- 19\n- 20\n- 21\nChannel: Microsoft-Windows-Sysmon/Operational"
+    }
+  ],
+  "fields": [
+    {
+      "name": "Action",
+      "description": "action take by the antivirus like \"delete\"",
+      "example": "",
+      "categories": [],
+      "products": [
+        "antivirus"
+      ],
+      "services": []
+    },
+    {
+      "name": "c-ip",
+      "description": "The IP address of the client that accessed your server.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "c-uri",
+      "description": "URL requested by client",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "c-uri-extension",
+      "description": "Extension of the URL. Commonly is the requested extension of a file name",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "c-uri-query",
+      "description": "Path component of requested URL",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "c-uri-stem",
+      "description": "Stem of the requested URL",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "c-useragent",
+      "description": "the clients user agent.",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "c-win32-status",
+      "description": "The status of the action, in terms used by Microsoft Windows®.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "CommandLine",
+      "description": "",
+      "example": "\"C:\\\\Program Files (x86)\\\\Google\\\\Update\\\\GoogleUpdate.exe\" /ua /installsource scheduler",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "Company",
+      "description": "",
+      "example": "Google Inc.",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-bytes",
+      "description": "Number of bytes sent from the server",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-bytes",
+      "description": "The number of bytes received by the server.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-cookie",
+      "description": "Cookie headers sent from client to server.",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-cookie",
+      "description": "The content of the cookie sent or received, if any.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-host",
+      "description": "Host header send from client to server",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-host",
+      "description": "Displays the content of the host header.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-method",
+      "description": "HTTP request method",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-method",
+      "description": "The action the client was trying to perform (for example, a GET method).",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-referer",
+      "description": "The previous site visited by the user. This site provided a link to the current site.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-referrer",
+      "description": "The referring link or site",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-uri-query",
+      "description": "The query, if any, the client was trying to perform.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-uri-stem",
+      "description": "The resource accessed; for example, Default.htm.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-user-agent",
+      "description": "The browser used on the client.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-username",
+      "description": "The name of the authenticated user who accessed your server. This does not include anonymous users, who are represented by a hyphen (-).",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-version",
+      "description": "The HTTP protocol version that the client used",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "cs-version",
+      "description": "The protocol (HTTP, FTP) version used by the client. For HTTP this will be either HTTP 1.0 or HTTP 1.1.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "CurrentDirectory",
+      "description": "",
+      "example": "C:\\\\Windows\\\\system32|",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "date",
+      "description": "The date that the activity occurred.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "Description",
+      "description": "",
+      "example": "Google Installer",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "destination.bytes",
+      "description": "Number of bytes",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "destination.ip",
+      "description": "Destination IP address",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "destination.ip",
+      "description": "Destination IP address",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "destination.packets",
+      "description": "Number of packets",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "destination.port",
+      "description": "Destination port number",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "destination.port",
+      "description": "Destination port number",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.answers.class",
+      "description": "DNS answer class",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.answers.data",
+      "description": "DNS answer data",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.answers.name",
+      "description": "DNS answer name",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.answers.ttl",
+      "description": "DNS answer TTL",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.answers.type",
+      "description": "DNS answer type",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.header.flags",
+      "description": "DNS header flags",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.id",
+      "description": "DNS transaction identifier",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.question.class",
+      "description": "DNS question class",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.question.name",
+      "description": "DNS question name",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.question.type",
+      "description": "DNS question type",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dns.response.code",
+      "description": "DNS response code",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "dst_ip",
+      "description": "The IP address of the server",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "dst_ip",
+      "description": "",
+      "example": "",
+      "categories": [
+        "firewall"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "dst_port",
+      "description": "",
+      "example": "",
+      "categories": [
+        "firewall"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "event.duration",
+      "description": "Connection duration in seconds",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "Filename",
+      "description": "the name and path of the source threat file",
+      "example": "",
+      "categories": [],
+      "products": [
+        "antivirus"
+      ],
+      "services": []
+    },
+    {
+      "name": "FileVersion",
+      "description": "",
+      "example": "1.3.28.13",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "example": "C:\\\\Program Files (x86)\\\\Google\\\\Update\\\\GoogleUpdate.exe",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "imphash",
+      "description": "",
+      "example": "E96A73C7BF33A464C510EDE582318BF2",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "IntegrityLevel",
+      "description": "",
+      "example": "System",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "LogonGuid",
+      "description": "",
+      "example": "{c1b49677-3fb9-5c09-0000-0020e7030000}",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "LogonId",
+      "description": "",
+      "example": "0x3e7",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "md5",
+      "description": "",
+      "example": "CCF1D1573F175299ADE01C07791A6541",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "network.community_id",
+      "description": "Community ID hash",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "network.community_id",
+      "description": "Community ID hash",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "network.history",
+      "description": "History of the connection",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "network.protocol",
+      "description": "Application layer protocol (e.g., http, dns, ssh)",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "network.state",
+      "description": "State of the connection",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "network.transport",
+      "description": "Transport layer protocol (e.g., tcp, udp)",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "network.type",
+      "description": "Network layer type (e.g., ipv4, ipv6, ipsec)",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "ParentCommandLine",
+      "description": "",
+      "example": "taskeng.exe {88F94E5C-5DC3-4606-AEFA-BDCA976D6113} S-1-5-18:NT AUTHORITY\\\\System:Service:",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "ParentImage",
+      "description": "",
+      "example": "C:\\\\Windows\\\\System32\\\\taskeng.exe",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "ParentProcessGuid",
+      "description": "",
+      "example": "{c1b49677-6b43-5c78-0000-00107fb77544}",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "ParentProcessId",
+      "description": "",
+      "example": "1724",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "ProcessGuid",
+      "description": "",
+      "example": "{c1b49677-43f4-5c7a-0000-0010d3dd8044}",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "ProcessId",
+      "description": "",
+      "example": "1028",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "Product",
+      "description": "",
+      "example": "Google Update",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "r-dns",
+      "description": "The Domain requested. Additionally is referred to as the Host header or URL Domain. Recommend to use `cs-host` instead of this field",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "s-computername",
+      "description": "The name of the server on which the log entry was generated.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "s-ip",
+      "description": "The IP address of the server on which the log entry was generated.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "s-port",
+      "description": "The port number the client is connected to.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "s-sitename",
+      "description": "The Internet service and instance number that was accessed by a client.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "sc-bytes",
+      "description": "Number of bytes sent from the client",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "sc-bytes",
+      "description": "The number of bytes sent by the server.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "sc-status",
+      "description": "The HTTP status code",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "sc-status",
+      "description": "The status of the action, in HTTP or FTP terms.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "sha1",
+      "description": "",
+      "example": "0AE1F9071C5E8FE4A69D3F671937935D242D8A6C",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "sha256",
+      "description": "",
+      "example": "68A15A34C2E28B9B521A240B948634617D72AD619E3950BC6DC769E60A0C3CF2",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "Signature",
+      "description": "name of the threat like \"EICAR-Test-File\"",
+      "example": "",
+      "categories": [],
+      "products": [
+        "antivirus"
+      ],
+      "services": []
+    },
+    {
+      "name": "source.bytes",
+      "description": "Number of bytes",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "source.ip",
+      "description": "Source IP address",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "source.ip",
+      "description": "Source IP address",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "source.packets",
+      "description": "Number of packets",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "source.port",
+      "description": "Source port number",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "connection"
+      ]
+    },
+    {
+      "name": "source.port",
+      "description": "Source port number",
+      "example": "",
+      "categories": [
+        "network"
+      ],
+      "products": [],
+      "services": [
+        "dns"
+      ]
+    },
+    {
+      "name": "src_ip",
+      "description": "The IP address of the client that made the request",
+      "example": "",
+      "categories": [
+        "proxy"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "src_ip",
+      "description": "",
+      "example": "",
+      "categories": [
+        "firewall"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "src_port",
+      "description": "",
+      "example": "",
+      "categories": [
+        "firewall"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "TerminalSessionId",
+      "description": "",
+      "example": "0",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "time",
+      "description": "The time that the activity occurred.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "time-taken",
+      "description": "The duration of time, in milliseconds, that the action consumed.",
+      "example": "",
+      "categories": [
+        "webserver"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "User",
+      "description": "",
+      "example": "NT AUTHORITY\\\\SYSTEM",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "username",
+      "description": "",
+      "example": "",
+      "categories": [
+        "firewall"
+      ],
+      "products": [],
+      "services": []
+    },
+    {
+      "name": "UtcTime",
+      "description": "",
+      "example": "2019-03-02 08:51:00.008",
+      "categories": [
+        "process_creation"
+      ],
+      "products": [],
+      "services": []
+    }
+  ],
+  "modifiers": [
+    {
+      "name": "all",
+      "group": "Generic Modifiers",
+      "description": "Normally, lists of values are linked with *OR* in the generated query. This modifier"
+    },
+    {
+      "name": "startswith",
+      "group": "Generic Modifiers",
+      "description": "The value is expected at the beginning of the field's content. (replaces e.g. 'adm\\*')"
+    },
+    {
+      "name": "endswith",
+      "group": "Generic Modifiers",
+      "description": "The value is expected at the end of the field's content (replaces e.g. '\\*\\\\cmd.exe')"
+    },
+    {
+      "name": "contains",
+      "group": "Generic Modifiers",
+      "description": "Puts `*` wildcards around the values, such that the value is matched anywhere in the"
+    },
+    {
+      "name": "exists",
+      "group": "Generic Modifiers",
+      "description": "Defines that a certain field has to exist or must not exist in a log event by providing a boolean value. Note that this check only verifies the presence of a field, not its value, be it empty or null."
+    },
+    {
+      "name": "cased",
+      "group": "Generic Modifiers",
+      "description": "Values are applied case sensitively. Default Sigma behavior is case-insensitive matching."
+    },
+    {
+      "name": "neq",
+      "group": "Generic Modifiers",
+      "description": "The field is different from the specified values."
+    },
+    {
+      "name": "windash",
+      "group": "String Modifiers",
+      "description": "Creates all possible permutations of the `-`, `/`, `–` (en dash), `—` (em dash), and `―` (horizontal bar) characters. Windows command line flags can often be indicated by both characters. Using the `windash` modifier converts the aforementioned characters interchangeably and uses all possible permutation of strings in the selection."
+    },
+    {
+      "name": "re",
+      "group": "String Modifiers",
+      "description": "Value is handled as a regular expression by backends. Regex is matched case-sensitive by default."
+    },
+    {
+      "name": "base64",
+      "group": "String Modifiers",
+      "description": "The value is encoded with Base64."
+    },
+    {
+      "name": "base64offset",
+      "group": "String Modifiers",
+      "description": "If a value might appear somewhere in a base64-encoded string the representation"
+    },
+    {
+      "name": "utf16le",
+      "group": "String Modifiers",
+      "description": "Transforms value to UTF16-LE encoding, e.g. `cmd` > `63 00 6d 00 64 00`"
+    },
+    {
+      "name": "utf16be",
+      "group": "String Modifiers",
+      "description": "Transforms value to UTF16-BE encoding, e.g. `cmd` > `00 63 00 6d 00 64`"
+    },
+    {
+      "name": "utf16",
+      "group": "String Modifiers",
+      "description": "Prepends a [byte order mark](https://en.wikipedia.org/wiki/Byte_order_mark) and encodes UTF16, e.g. `cmd` > `FF FE 63 00 6d 00 64 00`"
+    },
+    {
+      "name": "wide",
+      "group": "String Modifiers",
+      "description": "an alias for the `utf16le` modifier."
+    },
+    {
+      "name": "lt",
+      "group": "Numeric Modifiers",
+      "description": "Field is less than the value"
+    },
+    {
+      "name": "lte",
+      "group": "Numeric Modifiers",
+      "description": "Field is less or equal than the value"
+    },
+    {
+      "name": "gt",
+      "group": "Numeric Modifiers",
+      "description": "Field is greater than the value"
+    },
+    {
+      "name": "gte",
+      "group": "Numeric Modifiers",
+      "description": "Field is greater or equal than the value"
+    },
+    {
+      "name": "minute",
+      "group": "Time Modifiers",
+      "description": "number between 0 and 59."
+    },
+    {
+      "name": "hour",
+      "group": "Time Modifiers",
+      "description": "number between 0 and 23."
+    },
+    {
+      "name": "day",
+      "group": "Time Modifiers",
+      "description": "number between 1 and 31."
+    },
+    {
+      "name": "week",
+      "group": "Time Modifiers",
+      "description": "number between 1 and 52."
+    },
+    {
+      "name": "month",
+      "group": "Time Modifiers",
+      "description": "number between 1 and 12."
+    },
+    {
+      "name": "year",
+      "group": "Time Modifiers",
+      "description": "number of the year"
+    },
+    {
+      "name": "cidr",
+      "group": "IP (Internet Protocol) Modifiers",
+      "description": "The value is handled as a CIDR network range specification by backends. Supports both IPv4 and IPv6 notations. Example: `DestinationIp|cidr: 10.0.0.0/8`"
+    },
+    {
+      "name": "expand",
+      "group": "Specific Modifiers",
+      "description": "Modifier for expansion of placeholders in values. The final behavior of the replacement is determined by processing pipeline transformations. Current possibilities in pySigma are:"
+    },
+    {
+      "name": "fieldref",
+      "group": "Specific Modifiers",
+      "description": "Modifies a plain string into a field reference. A field reference can be used to compare fields of matched"
+    }
+  ]
+}
