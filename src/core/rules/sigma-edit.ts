@@ -371,3 +371,152 @@ export function updateSigmaMetadata(text: string, patch: SigmaMetadataPatch): Si
 export function metadataListFromText(text: string): string[] {
   return cleanList(text.split(/\r?\n/u));
 }
+
+export const SIGMA_MAX_CONDITION_LENGTH = 10_000;
+
+export type SigmaConditionJoiner = 'and' | 'or';
+
+export interface SigmaConditionDraft {
+  condition: string;
+  selections: string[];
+  hasDetection: boolean;
+}
+
+export interface SigmaConditionPreset {
+  id: string;
+  label: string;
+  expression: string;
+}
+
+/** Read the detection condition and the selection names around it. */
+export function readSigmaCondition(text: string): SigmaConditionDraft {
+  const document = parseRuleDocument(text);
+  const detection = document.get('detection');
+  if (!isMap(detection)) {
+    return { condition: '', selections: [], hasDetection: false };
+  }
+
+  const selections: string[] = [];
+  for (const pair of detection.items) {
+    if (!isScalar(pair.key) || typeof pair.key.value !== 'string') continue;
+    const name = pair.key.value;
+    if (name === 'condition' || name === 'timeframe') continue;
+    selections.push(name);
+  }
+
+  return {
+    condition: scalarText(detection.get('condition')),
+    selections,
+    hasDetection: true,
+  };
+}
+
+/**
+ * Write `detection.condition` and leave every selection untouched. An empty
+ * condition is rejected because the schema requires one.
+ */
+export function updateSigmaCondition(text: string, condition: string): SigmaEditResult {
+  const cleaned = condition.trim();
+  if (cleaned.length === 0) {
+    throw new SigmaEditError('A detection condition cannot be empty.');
+  }
+  if (cleaned.length > SIGMA_MAX_CONDITION_LENGTH) {
+    throw new SigmaEditError(
+      `The condition exceeds the ${SIGMA_MAX_CONDITION_LENGTH.toLocaleString()} character limit.`,
+    );
+  }
+
+  const document = parseRuleDocument(text);
+  const detection = document.get('detection');
+  if (!isMap(detection)) {
+    throw new SigmaEditError('The rule has no detection map to update.');
+  }
+
+  document.setIn(['detection', 'condition'], cleaned);
+  const next = stringify(document);
+  return { text: next, changed: next !== text };
+}
+
+function sharedSelectionPrefix(names: readonly string[]): string {
+  if (names.length < 2) return '';
+  let prefix = names[0] ?? '';
+  for (const name of names.slice(1)) {
+    let index = 0;
+    while (index < prefix.length && index < name.length && prefix[index] === name[index]) {
+      index += 1;
+    }
+    prefix = prefix.slice(0, index);
+    if (prefix.length === 0) return '';
+  }
+  const cut = prefix.lastIndexOf('_');
+  return cut > 0 ? prefix.slice(0, cut + 1) : '';
+}
+
+/**
+ * Preset conditions built from the current selection names. The expressions
+ * are plain Sigma conditions; this function does not judge their quality.
+ */
+export function sigmaConditionPresets(selections: readonly string[]): SigmaConditionPreset[] {
+  const names = [...new Set(selections.map((name) => name.trim()).filter(Boolean))];
+  if (names.length === 0) return [];
+
+  const presets: SigmaConditionPreset[] = [
+    { id: 'all', label: 'All selections', expression: names.join(' and ') },
+    { id: 'any', label: 'Any selection', expression: names.join(' or ') },
+  ];
+
+  if (names.length > 1) {
+    presets.push({ id: 'one-of-them', label: 'One of them', expression: '1 of them' });
+    presets.push({ id: 'all-of-them', label: 'All of them', expression: 'all of them' });
+  }
+
+  const prefix = sharedSelectionPrefix(names);
+  if (prefix) {
+    presets.push({
+      id: 'one-of-prefix',
+      label: `One of ${prefix}*`,
+      expression: `1 of ${prefix}*`,
+    });
+    presets.push({
+      id: 'all-of-prefix',
+      label: `All of ${prefix}*`,
+      expression: `all of ${prefix}*`,
+    });
+  }
+
+  return presets;
+}
+
+function isFullyParenthesized(text: string): boolean {
+  if (!text.startsWith('(') || !text.endsWith(')')) return false;
+  let depth = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    if (character === '(') {
+      depth += 1;
+    } else if (character === ')') {
+      depth -= 1;
+      if (depth < 0 || (depth === 0 && index < text.length - 1)) return false;
+    }
+  }
+  return depth === 0;
+}
+
+/**
+ * Append a selection to the condition with an explicit joiner. A compound
+ * condition is parenthesized first so the new joiner cannot change how the
+ * existing expression binds.
+ */
+export function appendSigmaSelection(
+  condition: string,
+  selection: string,
+  joiner: SigmaConditionJoiner,
+): string {
+  const name = selection.trim();
+  if (name.length === 0) return condition.trim();
+  const base = condition.trim();
+  if (base.length === 0) return name;
+  const wrapped = /\s/u.test(base) && !isFullyParenthesized(base) ? `(${base})` : base;
+  return `${wrapped} ${joiner} ${name}`;
+}
+
