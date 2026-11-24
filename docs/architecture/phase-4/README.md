@@ -19,6 +19,8 @@ detection works.
 | Piece | Behaviour |
 |---|---|
 | Rule editor | YAML text editor with open-file, example, and clear actions |
+| YAML formatting | Document-based reformat with a two-space indent; detection, key order, and comments are kept |
+| Metadata editor | Title, ID, status, description, references, author, date, modified, logsource, false positives, level, and tags |
 | Validate action | Button or `Ctrl`/`Cmd` + `Enter` |
 | YAML diagnostics | Parse failures reported with line and column |
 | Schema diagnostics | Ajv 2020 errors reported with JSON paths and keywords |
@@ -48,6 +50,32 @@ single “invalid rule” message.
 
 The third class belongs to the evaluator, not the validator. Presenting it as a
 pass would be false assurance.
+
+## Formatting and metadata editing
+
+**Format** parses the rule into a `yaml` Document and writes the same document
+back with a two-space indent, no line folding, and one trailing newline.
+Detection blocks, key order, scalar quoting, unknown fields, and comments stay
+in the document. Formatting is idempotent. It refuses empty input, invalid YAML,
+multi-document input, a non-mapping top level, and input over 1 MiB.
+
+**Metadata** opens a form for the fields in §8.4 of the specification: title,
+ID, status, description, references, author, date, modified, logsource, false
+positives, level, and tags. Apply re-parses the current editor text and writes
+only those keys. Detection, custom keys, and all other fields are untouched.
+Empty fields remove their key; list entries are trimmed, de-duplicated, and
+written one per line.
+
+- Applying is blocked when the editor changed after the form was loaded. Reload
+  the form so stale values cannot overwrite newer edits.
+- Detection is not edited structurally. Field maps, modifiers, and conditions
+  stay in the YAML editor.
+- A comment attached to a field survives when the field is rewritten. Removing
+  a field drops comments attached to its value; a leading comment moves to the
+  next key where possible. Rewriting a list keeps the field comment but not
+  per-item comments.
+- Both actions clear the validation report because the rule text changed. Run
+  Validate again to check the result.
 
 ## Vendored schema
 
@@ -213,8 +241,9 @@ Known limits:
 Ajv, `ajv-formats`, and the schema are loaded with a dynamic import the first
 time Rule Studio validates a rule. The catalog tool
 `detection.sigma-validator` uses the same dynamic import. The local evaluator is
-loaded on the first test run. Neither the route's initial chunk nor the
-application's initial bundle includes the schema or the evaluator.
+loaded on the first test run, and the `yaml` Document editor is loaded on the
+first format or metadata action. Neither the route's initial chunk nor the
+application's initial bundle includes the schema, evaluator, or editor.
 
 `src/core/rules/sigma-meta.ts` contains only the limits and attribution metadata
 needed for the initial UI, so the view can show the cap and schema fingerprint
@@ -239,6 +268,10 @@ library, collections, revisions, and diffs are not implemented yet.
 
 - It does not replay production telemetry, schedule tests, or route events by
   logsource. Only pasted sample events are evaluated.
+- It does not edit detection blocks or conditions through the metadata form.
+  Those stay in the YAML editor, and formatting never changes their meaning.
+- It does not yet provide logsource/field reference helpers, a detection
+  condition helper, an ATT&CK tag picker, or a visual rule builder.
 - It does not import repository-wide rule packs in one operation or resolve
   Sigma includes.
 - It does not convert rules to backend query languages.
@@ -262,6 +295,15 @@ library, collections, revisions, and diffs are not implemented yet.
 - subset warnings for aggregation;
 - the 1 MiB input cap;
 - the catalog tool's output and metadata.
+
+`tests/unit/sigma-edit.test.ts` covers:
+
+- formatting indentation, idempotence, CRLF input, and comment preservation;
+- rejection of empty, invalid, multi-document, non-mapping, and over-limit input;
+- metadata reads for scalars, lists, dates, and logsource;
+- metadata writes that preserve detection, unknown keys, and comments;
+- field removal, nested logsource updates, list trimming, and no-op detection;
+- leading, trailing, and list-field comment preservation.
 
 `tests/unit/sigma-evaluator.test.ts` covers:
 

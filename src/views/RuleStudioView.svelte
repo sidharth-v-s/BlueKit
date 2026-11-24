@@ -1,15 +1,18 @@
 <script lang="ts">
   import CircleAlert from 'lucide-svelte/icons/circle-alert';
   import CircleCheck from 'lucide-svelte/icons/circle-check';
+  import AlignLeft from 'lucide-svelte/icons/align-left';
   import Eraser from 'lucide-svelte/icons/eraser';
   import FileText from 'lucide-svelte/icons/file-text';
   import Info from 'lucide-svelte/icons/info';
   import LoaderCircle from 'lucide-svelte/icons/loader-circle';
   import Play from 'lucide-svelte/icons/play';
   import ShieldCheck from 'lucide-svelte/icons/shield-check';
+  import SlidersHorizontal from 'lucide-svelte/icons/sliders-horizontal';
   import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
   import Upload from 'lucide-svelte/icons/upload';
   import RuleLibraryPanel from '@/components/rules/RuleLibraryPanel.svelte';
+  import SigmaMetadataPanel from '@/components/rules/SigmaMetadataPanel.svelte';
   import { ui } from '@/app/ui.svelte';
   import { SIGMA_MAX_INPUT_BYTES, SIGMA_SCHEMA_SOURCE } from '@/core/rules/sigma-meta';
   import type { RuleRecord } from '@/core/rules/library';
@@ -70,6 +73,8 @@ tags:
   let testResult = $state<SigmaTestResult | null>(null);
   let testError = $state<string | null>(null);
   let testing = $state(false);
+  let metadataOpen = $state(false);
+  let formatting = $state(false);
 
   const byteLength = $derived(new TextEncoder().encode(rule).byteLength);
   const overLimit = $derived(byteLength > SIGMA_MAX_INPUT_BYTES);
@@ -124,6 +129,34 @@ tags:
   function loadExample(): void {
     rule = EXAMPLE_RULE;
     currentRecordId = null;
+    report = null;
+    error = null;
+  }
+
+  async function formatRule(): Promise<void> {
+    if (formatting || overLimit || rule.trim().length === 0) return;
+    formatting = true;
+    try {
+      // The yaml Document parser stays out of the initial bundle.
+      const { formatSigmaRule } = await import('@/core/rules/sigma-edit');
+      const next = formatSigmaRule(rule);
+      if (next === rule) {
+        ui.toast('The rule is already formatted.', 'info');
+        return;
+      }
+      rule = next;
+      report = null;
+      error = null;
+      ui.toast('Formatted YAML. Detection blocks and comments are preserved.', 'success');
+    } catch (caught) {
+      ui.toast(caught instanceof Error ? caught.message : String(caught), 'danger');
+    } finally {
+      formatting = false;
+    }
+  }
+
+  function applyMetadata(text: string): void {
+    rule = text;
     report = null;
     error = null;
   }
@@ -250,6 +283,24 @@ tags:
           aria-label="Open a Sigma rule file"
         />
         <div class="head-actions">
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            aria-expanded={metadataOpen}
+            onclick={() => (metadataOpen = !metadataOpen)}
+          >
+            <SlidersHorizontal size={12} strokeWidth={1.9} aria-hidden="true" /> Metadata
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            onclick={() => void formatRule()}
+            disabled={formatting || overLimit || rule.trim().length === 0}
+            title="Normalize YAML indentation while keeping detection and comments"
+          >
+            <AlignLeft size={12} strokeWidth={1.9} aria-hidden="true" />
+            {formatting ? 'Formatting…' : 'Format'}
+          </button>
           <button type="button" class="btn btn-ghost btn-sm" onclick={() => fileInput?.click()}>
             <Upload size={12} strokeWidth={1.9} aria-hidden="true" /> Open file
           </button>
@@ -418,6 +469,14 @@ tags:
     </section>
   </div>
 
+  {#if metadataOpen}
+    <SigmaMetadataPanel
+      {rule}
+      onapply={applyMetadata}
+      onclose={() => (metadataOpen = false)}
+    />
+  {/if}
+
   <RuleLibraryPanel
     {rule}
     {currentRecordId}
@@ -582,8 +641,8 @@ tags:
         <p>
           <strong>Offline and pinned.</strong> The schema is vendored from SigmaHQ and checksummed in
           {SIGMA_SCHEMA_SOURCE.path}; Ajv loads only when validation first runs. Local testing evaluates
-          the documented subset on your sample events. The library stores rules in this browser; version
-          history and diffs remain planned.
+          the documented subset on your sample events. The library stores rules in this browser with
+          revision snapshots, diffs, restore, collections, and favourites.
         </p>
       </div>
     </div>
@@ -656,6 +715,8 @@ tags:
   .head-actions {
     display: flex;
     gap: 4px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .file-input {
