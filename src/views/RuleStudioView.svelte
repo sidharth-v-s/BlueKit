@@ -18,6 +18,7 @@
   import RuleLibraryPanel from '@/components/rules/RuleLibraryPanel.svelte';
   import SigmaAttackTagPicker from '@/components/rules/SigmaAttackTagPicker.svelte';
   import SigmaBuilderPanel from '@/components/rules/SigmaBuilderPanel.svelte';
+  import SigmaCapabilityPanel from '@/components/rules/SigmaCapabilityPanel.svelte';
   import SigmaConditionPanel from '@/components/rules/SigmaConditionPanel.svelte';
   import SigmaMetadataPanel from '@/components/rules/SigmaMetadataPanel.svelte';
   import SigmaReferencePanel from '@/components/rules/SigmaReferencePanel.svelte';
@@ -82,6 +83,7 @@ tags:
   let testError = $state<string | null>(null);
   let testing = $state(false);
   let builderOpen = $state(false);
+  let capabilityOpen = $state(false);
   let metadataOpen = $state(false);
   let conditionOpen = $state(false);
   let attackOpen = $state(false);
@@ -412,6 +414,22 @@ tags:
             {byteLength.toLocaleString()} B / {SIGMA_MAX_INPUT_BYTES / 1024} KiB
           </span>
         </div>
+
+        <div class="capability-strip">
+          <Info size={12} strokeWidth={1.9} aria-hidden="true" />
+          <span>
+            Author, validate, test the documented subset, and export Sigma YAML. No conversion
+            engine is bundled.
+          </span>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            aria-expanded={capabilityOpen}
+            onclick={() => (capabilityOpen = !capabilityOpen)}
+          >
+            Capabilities
+          </button>
+        </div>
       </div>
     </section>
 
@@ -537,6 +555,10 @@ tags:
       {/if}
     </section>
   </div>
+
+  {#if capabilityOpen}
+    <SigmaCapabilityPanel onclose={() => (capabilityOpen = false)} />
+  {/if}
 
   {#if builderOpen}
     <SigmaBuilderPanel
@@ -822,6 +844,25 @@ tags:
 
   .file-input {
     display: none;
+  }
+
+  .capability-strip {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    padding: 7px 9px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--muted-2);
+    font-size: 10.5px;
+  }
+
+  .capability-strip > span {
+    flex: 1;
+    min-width: 220px;
+    line-height: 1.45;
   }
 
   .editor-body {

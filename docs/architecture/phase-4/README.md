@@ -23,6 +23,7 @@ detection works.
 | Metadata editor | Title, ID, status, description, references, author, date, modified, logsource, false positives, level, and tags |
 | Condition helper | Builds `detection.condition` from selection names, with all/any/of-them presets and AND/OR append |
 | Visual builder | Common-pattern form that writes metadata, logsource, selections, and a generated condition as normal Sigma YAML |
+| Capability state | Persistent author/validate/test/export notice plus a panel explaining why conversion is unavailable |
 | ATT&CK tags | Versioned Enterprise ATT&CK snapshot with tactic chips, technique search, and apply |
 | Logsource and field reference | Vendored Sigma taxonomy with logsource search/apply, field lists, and modifier support badges |
 | Validate action | Button or `Ctrl`/`Cmd` + `Enter` |
@@ -190,6 +191,38 @@ The reference is authoring help, not a closed vocabulary or a validator. A
 logsource value absent from the snapshot is not treated as invalid. The panel
 does not autocomplete inside the editor, and the snapshot does not update
 itself.
+
+## Capabilities and conversion
+
+Rule Studio states its operating scope instead of implying full rule-platform
+support. A persistent strip under the editor says: author, validate, test the
+documented subset, and export Sigma YAML; no conversion engine is bundled. The
+**Capabilities** panel expands the same state:
+
+| Capability | State | Scope |
+|---|---|---|
+| Edit and format | available | Document-based formatting preserves detection, comments, and unknown keys |
+| Validate | available | YAML and the vendored official schema, reported separately |
+| Test sample events | documented subset | Unsupported constructs fail visibly; a match is authoring feedback |
+| Export | available | Sigma YAML files and `bluekit.rules` bundles |
+| Convert to a query language | unavailable | No browser-compatible converter is included |
+| Convert through a server | never | No BlueKit backend or proxy; rule text is not sent away |
+
+`package.json` contains no Sigma conversion library, and no WebAssembly
+converter is part of the build. The panel lists the planned target names
+(Splunk SPL, Microsoft Sentinel KQL, Elastic EQL/ES|QL, and Wazuh rules) as
+`not included`; that list is not a support claim. Text substitution is not used
+as a stand-in, because a lossy rewrite presented as a working query is worse
+than an explicit unavailable state.
+
+Adding conversion later would require a maintained browser library or WASM
+build, a pinned target version, fixtures for modifiers, lists, and conditions,
+a visible report for constructs that cannot be translated, and a statement that
+converted output still needs review in the target platform. The capability state
+would change only when that converter is actually shipped.
+
+This state covers Sigma conversion only. YARA Studio is a separate workspace
+with its own engine and limits; it does not convert Sigma rules to YARA.
 
 ## Vendored schema
 
@@ -404,7 +437,8 @@ library, collections, revisions, and diffs are not implemented yet.
   taxonomy appendix.
 - It does not import repository-wide rule packs in one operation or resolve
   Sigma includes.
-- It does not convert rules to backend query languages.
+- It does not convert rules to backend query languages. The Capabilities panel
+  states this explicitly and does not offer a disabled or best-effort converter.
 - It does not validate correlation rules against a correlation schema.
 - It does not judge detection quality, false-positive rate, or coverage.
 - It does not fetch anything. `logsource` is metadata only.
