@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
+import { validateSigmaRule } from '@/core/rules/sigma';
 import {
   buildSigmaRule,
   emptySigmaBuilderDraft,
@@ -215,6 +216,37 @@ describe('buildSigmaRule', () => {
       service: 'security',
       definition: 'Security channel',
     });
+  });
+
+  it('produces YAML that passes the vendored Sigma schema', () => {
+    const result = buildSigmaRule(
+      draft({
+        selections: [
+          selection({ name: 'selection_image', field: 'Image', modifier: 'endswith' }),
+          selection({
+            name: 'selection_command',
+            field: 'CommandLine',
+            modifier: 'contains',
+            match: 'all',
+            cased: true,
+            values: [' -enc ', ' -encodedcommand '],
+          }),
+          selection({
+            name: 'filter_system',
+            field: 'User',
+            modifier: 'equals',
+            values: ['SYSTEM'],
+            negate: true,
+          }),
+        ],
+        references: ['https://example.test/rule'],
+        tags: ['attack.execution', 'attack.t1059.001'],
+        falsepositives: ['Legitimate administrative scripts'],
+      }),
+    );
+    const report = validateSigmaRule(result.text);
+    expect(report.issues).toEqual([]);
+    expect(report.valid).toBe(true);
   });
 
   it('warns about missing id, author, and description', () => {
