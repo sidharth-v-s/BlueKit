@@ -23,6 +23,7 @@ detection works.
 | Metadata editor | Title, ID, status, description, references, author, date, modified, logsource, false positives, level, and tags |
 | Condition helper | Builds `detection.condition` from selection names, with all/any/of-them presets and AND/OR append |
 | ATT&CK tags | Versioned Enterprise ATT&CK snapshot with tactic chips, technique search, and apply |
+| Logsource and field reference | Vendored Sigma taxonomy with logsource search/apply, field lists, and modifier support badges |
 | Validate action | Button or `Ctrl`/`Cmd` + `Enter` |
 | YAML diagnostics | Parse failures reported with line and column |
 | Schema diagnostics | Ajv 2020 errors reported with JSON paths and keywords |
@@ -122,6 +123,35 @@ documented in [ATT&CK tag data](attack-data.md).
 The picker is metadata association, not coverage or detection-quality
 judgement. It does not fetch updates, include Mobile or ICS ATT&CK, or export an
 ATT&CK Navigator layer.
+
+## Logsource, field, and modifier reference
+
+The reference panel uses the vendored Sigma specification appendices. The
+current snapshot is specification 2.1.0, released 2025-08-02, retrieved
+2026-11-24, with 140 logsource rows, 99 fields, and 28 modifiers. Provenance,
+the regeneration script, and the limits are documented in
+[Sigma logsource and field reference data](sigma-reference-data.md).
+
+- **Log sources** lists taxonomy rows with product, category, and service
+  filters plus free-text search. **Use** writes the selected `product`,
+  `category`, and `service` keys through the YAML Document editor and clears
+  keys that the selected row does not carry. An existing `definition` is kept.
+- **Fields** lists the taxonomy fields for a selected logsource or category.
+  A field matches only when every selector on it matches, so network DNS fields
+  do not appear for connection events. Many log sources have no field list; the
+  panel says so instead of inventing one.
+- **Modifiers** lists the standardized modifiers and marks each as `local test`
+  or `author only`. The local subset supports `all`, `any`, `cased`,
+  `contains`, `endswith`, and `startswith`; other constructs are valid Sigma but
+  are rejected by local testing with a visible diagnostic.
+- Copy puts a field name or `|modifier` on the clipboard.
+- Applying a logsource is blocked when the editor changed after the panel
+  loaded.
+
+The reference is authoring help, not a closed vocabulary or a validator. A
+logsource value absent from the snapshot is not treated as invalid. The panel
+does not autocomplete inside the editor, and the snapshot does not update
+itself.
 
 ## Vendored schema
 
@@ -289,9 +319,10 @@ time Rule Studio validates a rule. The catalog tool
 `detection.sigma-validator` uses the same dynamic import. The local evaluator is
 loaded on the first test run, and the `yaml` Document editor is loaded on the
 first format, metadata, condition, or tag action. The ATT&CK dataset is loaded
-only when the tag picker opens. Neither the route's initial chunk nor the
-application's initial bundle includes the schema, evaluator, editor, or ATT&CK
-snapshot.
+only when the tag picker opens. The Sigma reference dataset is loaded only when
+the reference panel opens. Neither the route's initial chunk nor the
+application's initial bundle includes the schema, evaluator, editor, ATT&CK
+snapshot, or Sigma reference.
 
 `src/core/rules/sigma-meta.ts` contains only the limits and attribution metadata
 needed for the initial UI, so the view can show the cap and schema fingerprint
@@ -318,12 +349,14 @@ library, collections, revisions, and diffs are not implemented yet.
   logsource. Only pasted sample events are evaluated.
 - It does not edit detection blocks or conditions through the metadata form.
   Those stay in the YAML editor, and formatting never changes their meaning.
-- It does not yet provide logsource/field reference helpers or a visual rule
-  builder.
+- It does not yet provide a visual rule builder.
 - The condition helper writes text but does not validate selection references
   or condition syntax; Validate and Run local test do that.
 - The ATT&CK picker covers Enterprise only, does not update itself, and does not
   export ATT&CK Navigator layers.
+- The Sigma reference panel does not autocomplete inside the editor, does not
+  validate logsource values, and covers only the field lists in the vendored
+  taxonomy appendix.
 - It does not import repository-wide rule packs in one operation or resolve
   Sigma includes.
 - It does not convert rules to backend query languages.
@@ -373,6 +406,17 @@ library, collections, revisions, and diffs are not implemented yet.
 - tag construction, description, tactic-id aliases, and unknown tags;
 - tag merging, trimming, the 100-tag cap, and removal;
 - defensive normalization of malformed tactics and techniques.
+
+`tests/unit/sigma-reference.test.ts` covers:
+
+- specification version, provenance, and both source checksums;
+- unique logsource keys and usable field and modifier counts;
+- logsource search ranking, exact filters, limits, and known values;
+- field matching by category, product, and service, including network
+  connection versus DNS;
+- field search, description, and limits;
+- the local-test modifier subset and modifier search;
+- defensive normalization of malformed rows.
 
 `tests/unit/sigma-evaluator.test.ts` covers:
 

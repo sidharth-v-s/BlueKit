@@ -2,6 +2,7 @@
   import CircleAlert from 'lucide-svelte/icons/circle-alert';
   import CircleCheck from 'lucide-svelte/icons/circle-check';
   import AlignLeft from 'lucide-svelte/icons/align-left';
+  import BookOpen from 'lucide-svelte/icons/book-open';
   import Eraser from 'lucide-svelte/icons/eraser';
   import FileText from 'lucide-svelte/icons/file-text';
   import GitBranch from 'lucide-svelte/icons/git-branch';
@@ -17,6 +18,7 @@
   import SigmaAttackTagPicker from '@/components/rules/SigmaAttackTagPicker.svelte';
   import SigmaConditionPanel from '@/components/rules/SigmaConditionPanel.svelte';
   import SigmaMetadataPanel from '@/components/rules/SigmaMetadataPanel.svelte';
+  import SigmaReferencePanel from '@/components/rules/SigmaReferencePanel.svelte';
   import { ui } from '@/app/ui.svelte';
   import { SIGMA_MAX_INPUT_BYTES, SIGMA_SCHEMA_SOURCE } from '@/core/rules/sigma-meta';
   import type { RuleRecord } from '@/core/rules/library';
@@ -80,6 +82,7 @@ tags:
   let metadataOpen = $state(false);
   let conditionOpen = $state(false);
   let attackOpen = $state(false);
+  let referenceOpen = $state(false);
   let formatting = $state(false);
 
   const byteLength = $derived(new TextEncoder().encode(rule).byteLength);
@@ -174,6 +177,12 @@ tags:
   }
 
   function applyTags(text: string): void {
+    rule = text;
+    report = null;
+    error = null;
+  }
+
+  function applyReference(text: string): void {
     rule = text;
     report = null;
     error = null;
@@ -324,6 +333,14 @@ tags:
             onclick={() => (attackOpen = !attackOpen)}
           >
             <Tag size={12} strokeWidth={1.9} aria-hidden="true" /> ATT&amp;CK
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            aria-expanded={referenceOpen}
+            onclick={() => (referenceOpen = !referenceOpen)}
+          >
+            <BookOpen size={12} strokeWidth={1.9} aria-hidden="true" /> Reference
           </button>
           <button
             type="button"
@@ -524,6 +541,14 @@ tags:
       {rule}
       onapply={applyTags}
       onclose={() => (attackOpen = false)}
+    />
+  {/if}
+
+  {#if referenceOpen}
+    <SigmaReferencePanel
+      {rule}
+      onapply={applyReference}
+      onclose={() => (referenceOpen = false)}
     />
   {/if}
 
