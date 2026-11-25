@@ -22,6 +22,7 @@ detection works.
 | YAML formatting | Document-based reformat with a two-space indent; detection, key order, and comments are kept |
 | Metadata editor | Title, ID, status, description, references, author, date, modified, logsource, false positives, level, and tags |
 | Condition helper | Builds `detection.condition` from selection names, with all/any/of-them presets and AND/OR append |
+| Visual builder | Common-pattern form that writes metadata, logsource, selections, and a generated condition as normal Sigma YAML |
 | ATT&CK tags | Versioned Enterprise ATT&CK snapshot with tactic chips, technique search, and apply |
 | Logsource and field reference | Vendored Sigma taxonomy with logsource search/apply, field lists, and modifier support badges |
 | Validate action | Button or `Ctrl`/`Cmd` + `Enter` |
@@ -103,6 +104,43 @@ helper does not check that the condition only references existing selections;
 Validate and Run local test report problems after the fact. The same stale-write
 guard as the metadata editor applies.
 
+## Visual rule builder
+
+The builder is a form for common rule shapes. It writes a complete Sigma rule
+from scratch: metadata, logsource, one or more field selections, and a generated
+condition. The result is ordinary YAML in the editor, so formatting, validation,
+local testing, the library, and revisions apply exactly as they do to a
+hand-written rule.
+
+- **Metadata**: title, ID, status, level, author, date, description, references,
+  false positives, and tags. Lists are entered one per line and are trimmed and
+  de-duplicated by the builder.
+- **Logsource**: product, category, service, and definition. At least one of the
+  first three is required; empty values are omitted.
+- **Selections**: name, field, modifier (`equals`, `contains`, `startswith`,
+  `endswith`), multi-value join (`any` or `all`), `cased`, and `exclude`.
+  Values are entered one per line. Leading and trailing spaces are preserved, so
+  ` -enc ` stays distinct from `-enc`; blank lines are dropped.
+- **Condition**: positive selections join with `and` or `or`. Excluded
+  selections are appended as `and not <name>`, or grouped as
+  `and not (filter_a or filter_b)` when there is more than one.
+- **Preview**: the generated YAML refreshes as the form changes. Builder warnings
+  name missing ID, author, or description; validation and local testing are
+  still separate steps.
+
+The builder starts a new rule and does not read the current editor into the
+form. If the editor already has content, **Replace editor** asks for explicit
+confirmation before overwriting it. Reset discards the form and generates a new
+ID and today's date.
+
+The builder is not a rule converter. It emits a documented common subset, not an
+arbitrary existing rule, and it does not judge whether the detection is useful.
+It refuses more than 20 selections, more than 100 values per selection, values
+over 4,096 characters, more than 100 references, false positives, or tags, a
+generated condition over 10,000 characters, and a rule over 1 MiB. Invalid
+selection names, fields, modifiers, dates, and logsource values produce visible
+errors in the preview instead of being guessed or silently dropped.
+
 ## ATT&CK tag picker
 
 The tag picker uses a vendored Enterprise ATT&CK snapshot. The current snapshot
@@ -180,6 +218,11 @@ vendors only the detection-rule schema.
 | Sample JSON | 2 MiB | Larger samples are rejected before parsing |
 | Condition tokens | 2,000 | Longer conditions are rejected before evaluation |
 | Selections | 200 | Larger rules are rejected before evaluation |
+| Builder selections | 20 | The form refuses more; the rule itself may have more if hand-written |
+| Builder values | 100 per selection | The form refuses more |
+| Builder value length | 4,096 characters | Longer values produce a preview error |
+| Builder list items | 100 each | References, false positives, and tags |
+| Builder condition | 10,000 characters | Longer generated conditions are refused |
 
 These caps protect the main thread. Validation is synchronous once the validator
 is loaded; the input cap and Ajv/schema work are small enough that a worker would
@@ -318,11 +361,12 @@ Ajv, `ajv-formats`, and the schema are loaded with a dynamic import the first
 time Rule Studio validates a rule. The catalog tool
 `detection.sigma-validator` uses the same dynamic import. The local evaluator is
 loaded on the first test run, and the `yaml` Document editor is loaded on the
-first format, metadata, condition, or tag action. The ATT&CK dataset is loaded
-only when the tag picker opens. The Sigma reference dataset is loaded only when
-the reference panel opens. Neither the route's initial chunk nor the
-application's initial bundle includes the schema, evaluator, editor, ATT&CK
-snapshot, or Sigma reference.
+first format, metadata, condition, or tag action. The visual builder is loaded
+when its panel opens. The ATT&CK dataset is loaded only when the tag picker
+opens. The Sigma reference dataset is loaded only when the reference panel
+opens. Neither the route's initial chunk nor the application's initial bundle
+includes the schema, evaluator, editor, builder, ATT&CK snapshot, or Sigma
+reference.
 
 `src/core/rules/sigma-meta.ts` contains only the limits and attribution metadata
 needed for the initial UI, so the view can show the cap and schema fingerprint
@@ -349,7 +393,8 @@ library, collections, revisions, and diffs are not implemented yet.
   logsource. Only pasted sample events are evaluated.
 - It does not edit detection blocks or conditions through the metadata form.
   Those stay in the YAML editor, and formatting never changes their meaning.
-- It does not yet provide a visual rule builder.
+- The visual builder covers common patterns only, starts a new rule instead of
+  importing the current editor, and does not judge detection quality.
 - The condition helper writes text but does not validate selection references
   or condition syntax; Validate and Run local test do that.
 - The ATT&CK picker covers Enterprise only, does not update itself, and does not
@@ -417,6 +462,15 @@ library, collections, revisions, and diffs are not implemented yet.
 - field search, description, and limits;
 - the local-test modifier subset and modifier search;
 - defensive normalization of malformed rows.
+
+`tests/unit/sigma-builder.test.ts` covers:
+
+- the default draft and selection naming;
+- field keys for equality, transformation, all, and cased modifiers;
+- metadata, logsource, lists, and generated conditions;
+- all/any joins and grouped negated filters;
+- rule-size, selection, value, date, title, and name limits;
+- schema validation of a builder-generated rule.
 
 `tests/unit/sigma-evaluator.test.ts` covers:
 

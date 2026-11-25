@@ -6,6 +6,7 @@
   import Eraser from 'lucide-svelte/icons/eraser';
   import FileText from 'lucide-svelte/icons/file-text';
   import GitBranch from 'lucide-svelte/icons/git-branch';
+  import Hammer from 'lucide-svelte/icons/hammer';
   import Info from 'lucide-svelte/icons/info';
   import LoaderCircle from 'lucide-svelte/icons/loader-circle';
   import Play from 'lucide-svelte/icons/play';
@@ -16,6 +17,7 @@
   import Upload from 'lucide-svelte/icons/upload';
   import RuleLibraryPanel from '@/components/rules/RuleLibraryPanel.svelte';
   import SigmaAttackTagPicker from '@/components/rules/SigmaAttackTagPicker.svelte';
+  import SigmaBuilderPanel from '@/components/rules/SigmaBuilderPanel.svelte';
   import SigmaConditionPanel from '@/components/rules/SigmaConditionPanel.svelte';
   import SigmaMetadataPanel from '@/components/rules/SigmaMetadataPanel.svelte';
   import SigmaReferencePanel from '@/components/rules/SigmaReferencePanel.svelte';
@@ -79,6 +81,7 @@ tags:
   let testResult = $state<SigmaTestResult | null>(null);
   let testError = $state<string | null>(null);
   let testing = $state(false);
+  let builderOpen = $state(false);
   let metadataOpen = $state(false);
   let conditionOpen = $state(false);
   let attackOpen = $state(false);
@@ -162,6 +165,12 @@ tags:
     } finally {
       formatting = false;
     }
+  }
+
+  function applyBuilder(text: string): void {
+    rule = text;
+    report = null;
+    error = null;
   }
 
   function applyMetadata(text: string): void {
@@ -310,6 +319,15 @@ tags:
           aria-label="Open a Sigma rule file"
         />
         <div class="head-actions">
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            aria-expanded={builderOpen}
+            onclick={() => (builderOpen = !builderOpen)}
+            title="Build a new rule from common patterns"
+          >
+            <Hammer size={12} strokeWidth={1.9} aria-hidden="true" /> Builder
+          </button>
           <button
             type="button"
             class="btn btn-ghost btn-sm"
@@ -519,6 +537,14 @@ tags:
       {/if}
     </section>
   </div>
+
+  {#if builderOpen}
+    <SigmaBuilderPanel
+      {rule}
+      onapply={applyBuilder}
+      onclose={() => (builderOpen = false)}
+    />
+  {/if}
 
   {#if metadataOpen}
     <SigmaMetadataPanel
